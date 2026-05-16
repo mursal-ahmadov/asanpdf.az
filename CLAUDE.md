@@ -102,6 +102,15 @@ AsanPDF.az/
 | `/pdf-to-sekil` | PDF → JPG | pdfjs-dist (canvas) | ✅ |
 | `/sixisdir` | PDF Sıxışdır (Compress) | pdfjs-dist + pdf-lib (rasterize → JPEG → embed) | ✅ |
 
+**pdfjs worker faylı:** `public/pdf.worker.min.mjs` — `node_modules/pdfjs-dist/build/`-dən kopyalandı. `?url` import sintaksisi production-da işləmir (Turbopack/Webpack uyğunsuzluğu). `pdfjs-dist` paketi yenilənəndə bu faylı **manual olaraq yenidən kopyala**:
+```bash
+cp node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/pdf.worker.min.mjs
+```
+Hər iki client (`sixisdir/CompressClient.tsx`, `pdf-to-sekil/PdfToImageClient.tsx`) belə qoşur:
+```ts
+pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+```
+
 **Sıxışdırma haqqında qeyd:** Hər səhifə pdfjs-dist ilə canvas-a render olunur, JPEG kimi seçilmiş keyfiyyətdə yenidən kompressiya edilir, sonra pdf-lib ilə yeni PDF qurulur. Bu o deməkdir ki, **mətn artıq seçilə bilməz** (şəkil olur). Bu trade-off istifadəçiyə açıqdır deyilmir, amma keyfiyyət presetləri belə dizayn olunub:
 - `high` (144 DPI, JPEG 0.85): mətn aydın oxunur
 - `medium` (110 DPI, JPEG 0.70): default, ən yaxşı balans

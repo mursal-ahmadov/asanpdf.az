@@ -38,9 +38,7 @@ export default function CompressClient() {
 
     try {
       const pdfjs = await import("pdfjs-dist");
-      // @ts-expect-error worker entry
-      const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
-      pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
+      pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
       const data = await file.arrayBuffer();
       const sourcePdf = await pdfjs.getDocument({ data }).promise;
