@@ -135,8 +135,7 @@ export default function CompressClient() {
             <p className="text-amber-800 leading-relaxed">
               Yüksək sıxma əldə etmək üçün hər səhifə yenidən şəkil kimi paketlənir.
               Bu o deməkdir ki, sıxışdırılmış PDF-də{" "}
-              <strong>mətn artıq seçilə bilməz</strong>, link və form sahələri{" "}
-              <strong>itə bilər</strong>. Sənəd görünüş baxımından eyni qalır,
+              <strong>mətn artıq seçilə bilməz</strong>. Sənəd görünüş baxımından eyni qalır,
               amma yalnız oxumaq üçündür.
             </p>
           </div>
