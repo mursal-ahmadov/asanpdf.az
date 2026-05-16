@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import { Analytics } from "@vercel/analytics/next";
 import MobileNav from "./components/MobileNav";
 import "./globals.css";
 
@@ -62,6 +63,7 @@ export default function RootLayout({
             <Link href="/haqqimizda" className="hover:text-accent transition">Haqqımızda</Link>
           </div>
         </footer>
+        <Analytics />
       </body>
     </html>
   );
