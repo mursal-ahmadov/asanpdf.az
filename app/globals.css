@@ -33,6 +33,55 @@ body {
   box-sizing: border-box;
 }
 
+/* Header nav links — modern animated underline + hover background */
+.nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.5rem;
+  color: #374151;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0.85rem;
+  right: 0.85rem;
+  bottom: 0.35rem;
+  height: 2px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.25s ease;
+}
+
+.nav-link:hover {
+  color: var(--accent);
+  background-color: rgba(59, 130, 246, 0.06);
+}
+
+.nav-link:hover::after {
+  transform: scaleX(1);
+}
+
+.nav-link-outline {
+  border: 1.5px solid var(--border);
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+}
+
+.nav-link-outline::after {
+  display: none;
+}
+
+.nav-link-outline:hover {
+  border-color: var(--accent);
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.08));
+}
+
 /* Tool card hover animations — trigger when .tool-card is hovered */
 
 @keyframes anim-merge {

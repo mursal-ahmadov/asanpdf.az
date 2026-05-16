@@ -64,16 +64,16 @@ export default function MobileNav() {
           {/* Backdrop */}
           <div
             className="sm:hidden fixed left-0 right-0 bottom-0 bg-black/40 z-40"
-            style={{ top: "64px" }}
+            style={{ top: "80px" }}
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
           {/* Menu panel — drops down from header */}
           <nav
             className="sm:hidden fixed left-0 right-0 bg-white border-b border-border shadow-lg z-50"
-            style={{ top: "64px" }}
+            style={{ top: "80px" }}
           >
-            <div className="flex flex-col p-3 gap-1 max-h-[calc(100vh-64px)] overflow-y-auto">
+            <div className="flex flex-col p-3 gap-1 max-h-[calc(100vh-80px)] overflow-y-auto">
               {links.map((l) => (
                 <Link
                   key={l.href}

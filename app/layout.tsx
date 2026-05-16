@@ -34,27 +34,26 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <header className="border-b border-border bg-white/80 backdrop-blur sticky top-0 z-50">
-          <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
             <Link href="/" className="flex items-center" aria-label="AsanPDF.az ana səhifə">
               <Image
                 src="/logo.png"
                 alt="AsanPDF.az"
-                width={240}
-                height={80}
+                width={320}
+                height={100}
                 priority
-                className="h-12 w-auto"
+                className="h-14 sm:h-16 w-auto"
               />
             </Link>
-            <nav className="hidden sm:flex items-center gap-4 lg:gap-6 text-sm">
-              <Link href="/birlesdir" className="hover:text-accent transition">Birləşdir</Link>
-              <Link href="/ayir" className="hover:text-accent transition">Ayır</Link>
-              <Link href="/sehife-sil" className="hover:text-accent transition">Səhifə sil</Link>
-              <Link href="/cixar" className="hover:text-accent transition">Çıxar</Link>
-              <Link href="/donder" className="hover:text-accent transition">Döndər</Link>
-              <Link href="/sekil-to-pdf" className="hover:text-accent transition">Şəkil → PDF</Link>
-              <Link href="/pdf-to-sekil" className="hover:text-accent transition">PDF → Şəkil</Link>
-              <span className="text-border">·</span>
-              <Link href="/haqqimizda" className="text-muted hover:text-accent transition">Haqqımızda</Link>
+            <nav className="hidden sm:flex items-center gap-1 text-sm font-medium">
+              <Link href="/birlesdir" className="nav-link">Birləşdir</Link>
+              <Link href="/ayir" className="nav-link">Ayır</Link>
+              <Link href="/sehife-sil" className="nav-link">Səhifə sil</Link>
+              <Link href="/cixar" className="nav-link">Çıxar</Link>
+              <Link href="/donder" className="nav-link">Döndər</Link>
+              <Link href="/sekil-to-pdf" className="nav-link">Şəkil → PDF</Link>
+              <Link href="/pdf-to-sekil" className="nav-link">PDF → Şəkil</Link>
+              <Link href="/haqqimizda" className="nav-link nav-link-outline ml-2">Haqqımızda</Link>
             </nav>
             <MobileNav />
           </div>
