@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
 import MobileNav from "./components/MobileNav";
+import Logo from "./components/Logo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -35,9 +36,7 @@ export default function RootLayout({
         <header className="border-b border-border bg-white/80 backdrop-blur sticky top-0 z-50">
           <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 font-semibold text-lg">
-              <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-accent text-white text-sm font-bold">
-                A
-              </span>
+              <Logo className="w-8 h-8" />
               <span>AsanPDF<span className="text-accent">.az</span></span>
             </Link>
             <nav className="hidden sm:flex items-center gap-4 lg:gap-6 text-sm">
@@ -57,10 +56,17 @@ export default function RootLayout({
 
         <main className="flex-1">{children}</main>
 
-        <footer className="border-t border-border py-3">
-          <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-1 text-xs text-muted">
-            <span>© {new Date().getFullYear()} AsanPDF.az — Pulsuz, sürətli, məxfi PDF alətləri</span>
-            <Link href="/haqqimizda" className="hover:text-accent transition">Haqqımızda</Link>
+        <footer className="border-t border-border py-4">
+          <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted">
+            <span className="text-center sm:text-left">
+              © {new Date().getFullYear()} AsanPDF.az — Pulsuz və sürətli PDF alətləri
+            </span>
+            <Link
+              href="/haqqimizda"
+              className="px-3 py-1.5 rounded-lg border border-border hover:border-accent hover:text-accent transition"
+            >
+              Haqqımızda
+            </Link>
           </div>
         </footer>
         <Analytics />
