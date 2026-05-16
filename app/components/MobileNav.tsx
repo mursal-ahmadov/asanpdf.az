@@ -29,7 +29,7 @@ export default function MobileNav() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="sm:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg text-foreground hover:bg-gray-100 active:bg-gray-200 cursor-pointer touch-manipulation"
+        className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg text-foreground hover:bg-gray-100 active:bg-gray-200 cursor-pointer touch-manipulation"
         aria-label={open ? "Menyunu bağla" : "Menyunu aç"}
         aria-expanded={open}
       >
@@ -64,14 +64,14 @@ export default function MobileNav() {
         <>
           {/* Backdrop */}
           <div
-            className="sm:hidden fixed left-0 right-0 bottom-0 bg-black/40 z-40"
+            className="lg:hidden fixed left-0 right-0 bottom-0 bg-black/40 z-40"
             style={{ top: "80px" }}
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
           {/* Menu panel — drops down from header */}
           <nav
-            className="sm:hidden fixed left-0 right-0 bg-white border-b border-border shadow-lg z-50"
+            className="lg:hidden fixed left-0 right-0 bg-white border-b border-border shadow-lg z-50"
             style={{ top: "80px" }}
           >
             <div className="flex flex-col p-3 gap-1 max-h-[calc(100vh-80px)] overflow-y-auto">

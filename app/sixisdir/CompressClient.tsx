@@ -129,6 +129,18 @@ export default function CompressClient() {
             </button>
           </div>
 
+          <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm">
+            <p className="font-semibold text-amber-900 mb-1">⚠️ Bilməli olduğun
+            </p>
+            <p className="text-amber-800 leading-relaxed">
+              Yüksək sıxma əldə etmək üçün hər səhifə yenidən şəkil kimi paketlənir.
+              Bu o deməkdir ki, sıxışdırılmış PDF-də{" "}
+              <strong>mətn artıq seçilə bilməz</strong>, link və form sahələri{" "}
+              <strong>itə bilər</strong>. Sənəd görünüş baxımından eyni qalır,
+              amma yalnız oxumaq üçündür.
+            </p>
+          </div>
+
           <div className="space-y-3 mb-6">
             <p className="text-sm font-medium text-gray-900">Keyfiyyət səviyyəsi:</p>
             {(Object.keys(PRESETS) as Quality[]).map((key) => {

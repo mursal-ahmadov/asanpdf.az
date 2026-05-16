@@ -45,7 +45,7 @@ export default function RootLayout({
                 className="h-14 sm:h-16 w-auto"
               />
             </Link>
-            <nav className="hidden sm:flex items-center gap-1 text-sm font-medium">
+            <nav className="hidden lg:flex items-center gap-1 text-sm font-medium">
               <Link href="/birlesdir" className="nav-link">Birləşdir</Link>
               <Link href="/ayir" className="nav-link">Ayır</Link>
               <Link href="/sehife-sil" className="nav-link">Səhifə sil</Link>
