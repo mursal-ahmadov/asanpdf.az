@@ -89,19 +89,6 @@ export default function AboutPage() {
           haqqı çatır.
         </p>
 
-        <h2 className="text-xl font-semibold text-gray-900 pt-4">
-          Bizim vədimiz
-        </h2>
-
-        <p>
-          Bu sayt həmişə <strong className="text-gray-900">pulsuz</strong> və{" "}
-          <strong className="text-gray-900">reklamsız</strong> qalacaq. Sənin
-          məlumatların həmişə{" "}
-          <strong className="text-gray-900">sənin özünün olaraq qalacaq</strong>. Hər gün yeni
-          alətlər, yeni təkmilləşdirmələr əlavə etmək niyyətindəyik və bu
-          yolda istifadəçilərimizin rəyləri bizim üçün ən vacib bələdçidir.
-        </p>
-
         <p className="pt-2">
           AsanPDF.az-i istifadə etdiyin üçün təşəkkür edirik. Ümid edirik ki,
           sənə kömək edə bildik.
