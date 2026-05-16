@@ -12,6 +12,7 @@ const links = [
   { href: "/donder", label: "Döndər" },
   { href: "/sekil-to-pdf", label: "Şəkil → PDF" },
   { href: "/pdf-to-sekil", label: "PDF → Şəkil" },
+  { href: "/sixisdir", label: "PDF Sıxışdır" },
   { href: "/haqqimizda", label: "Haqqımızda" },
 ];
 

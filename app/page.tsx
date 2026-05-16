@@ -36,6 +36,11 @@ const tools = [
     icon: "📷", anim: "anim-flash",
     color: "from-pink-500 to-fuchsia-600", glow: "hover:shadow-pink-500/25", iconBg: "bg-pink-50", ring: "group-hover:ring-pink-200",
   },
+  {
+    href: "/sixisdir", title: "PDF Sıxışdır", desc: "Fayl ölçüsünü 50-90% azalt",
+    icon: "🗜️", anim: "anim-compress",
+    color: "from-indigo-500 to-blue-700", glow: "hover:shadow-indigo-500/25", iconBg: "bg-indigo-50", ring: "group-hover:ring-indigo-200",
+  },
 ];
 
 export default function Home() {

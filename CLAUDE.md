@@ -89,7 +89,7 @@ AsanPDF.az/
 └── CLAUDE.md                   # Bu sənəd
 ```
 
-## 6. 7 PDF aləti (hamısı brauzerdə işləyir)
+## 6. 8 PDF aləti (hamısı brauzerdə işləyir)
 
 | URL | Funksiya | Texnologiya | Status |
 |-----|----------|-------------|--------|
@@ -100,6 +100,12 @@ AsanPDF.az/
 | `/donder` | Səhifə döndər | pdf-lib | ✅ |
 | `/sekil-to-pdf` | Şəkil → PDF | pdf-lib (embedJpg/Png) | ✅ |
 | `/pdf-to-sekil` | PDF → JPG | pdfjs-dist (canvas) | ✅ |
+| `/sixisdir` | PDF Sıxışdır (Compress) | pdfjs-dist + pdf-lib (rasterize → JPEG → embed) | ✅ |
+
+**Sıxışdırma haqqında qeyd:** Hər səhifə pdfjs-dist ilə canvas-a render olunur, JPEG kimi seçilmiş keyfiyyətdə yenidən kompressiya edilir, sonra pdf-lib ilə yeni PDF qurulur. Bu o deməkdir ki, **mətn artıq seçilə bilməz** (şəkil olur). Bu trade-off istifadəçiyə açıqdır deyilmir, amma keyfiyyət presetləri belə dizayn olunub:
+- `high` (144 DPI, JPEG 0.85): mətn aydın oxunur
+- `medium` (110 DPI, JPEG 0.70): default, ən yaxşı balans
+- `low` (80 DPI, JPEG 0.55): maksimum sıxma, mətn bir az bulanıq
 
 **Hər alət səhifəsinin ortaq strukturu:**
 1. `ToolHeader` — başlıq və qısa təsvir

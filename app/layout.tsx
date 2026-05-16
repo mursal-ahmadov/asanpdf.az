@@ -53,6 +53,7 @@ export default function RootLayout({
               <Link href="/donder" className="nav-link">Döndər</Link>
               <Link href="/sekil-to-pdf" className="nav-link">Şəkil → PDF</Link>
               <Link href="/pdf-to-sekil" className="nav-link">PDF → Şəkil</Link>
+              <Link href="/sixisdir" className="nav-link">Sıxışdır</Link>
               <Link href="/haqqimizda" className="nav-link nav-link-outline ml-2">Haqqımızda</Link>
             </nav>
             <MobileNav />

@@ -148,6 +148,15 @@ body {
   display: inline-block;
 }
 
+@keyframes anim-compress {
+  0%, 100% { transform: scaleX(1); }
+  50%      { transform: scaleX(0.55); }
+}
+.tool-card:hover .anim-compress {
+  animation: anim-compress 0.9s ease-in-out infinite;
+  display: inline-block;
+}
+
 @keyframes anim-flash {
   0%, 100% { transform: scale(1); filter: brightness(1); }
   40%      { transform: scale(1.2); filter: brightness(1.8); }
