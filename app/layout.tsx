@@ -45,16 +45,16 @@ export default function RootLayout({
                 className="h-14 sm:h-16 w-auto"
               />
             </Link>
-            <nav className="hidden lg:flex items-center gap-1 text-sm font-medium">
-              <Link href="/birlesdir" className="nav-link">Birləşdir</Link>
-              <Link href="/ayir" className="nav-link">Ayır</Link>
-              <Link href="/sehife-sil" className="nav-link">Səhifə sil</Link>
-              <Link href="/cixar" className="nav-link">Çıxar</Link>
-              <Link href="/donder" className="nav-link">Döndər</Link>
-              <Link href="/sekil-to-pdf" className="nav-link">Şəkil → PDF</Link>
-              <Link href="/pdf-to-sekil" className="nav-link">PDF → Şəkil</Link>
-              <Link href="/sixisdir" className="nav-link">Sıxışdır</Link>
-              <Link href="/haqqimizda" className="nav-link nav-link-outline ml-2">Haqqımızda</Link>
+            <nav className="hidden lg:flex items-center gap-2 text-sm font-medium">
+              <Link href="/birlesdir"   className="px-3 py-1.5 rounded-lg border border-blue-200    text-blue-700    hover:bg-blue-50    hover:border-blue-400    transition">Birləşdir</Link>
+              <Link href="/ayir"        className="px-3 py-1.5 rounded-lg border border-violet-200  text-violet-700  hover:bg-violet-50  hover:border-violet-400  transition">Ayır</Link>
+              <Link href="/sehife-sil"  className="px-3 py-1.5 rounded-lg border border-rose-200    text-rose-700    hover:bg-rose-50    hover:border-rose-400    transition">Səhifə sil</Link>
+              <Link href="/cixar"       className="px-3 py-1.5 rounded-lg border border-amber-200   text-amber-700   hover:bg-amber-50   hover:border-amber-400   transition">Çıxar</Link>
+              <Link href="/donder"      className="px-3 py-1.5 rounded-lg border border-cyan-200    text-cyan-700    hover:bg-cyan-50    hover:border-cyan-400    transition">Döndər</Link>
+              <Link href="/sekil-to-pdf" className="px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-400 transition">Şəkil → PDF</Link>
+              <Link href="/pdf-to-sekil" className="px-3 py-1.5 rounded-lg border border-pink-200   text-pink-700    hover:bg-pink-50    hover:border-pink-400    transition">PDF → Şəkil</Link>
+              <Link href="/sixisdir"    className="px-3 py-1.5 rounded-lg border border-indigo-200  text-indigo-700  hover:bg-indigo-50  hover:border-indigo-400  transition">Sıxışdır</Link>
+              <Link href="/haqqimizda"  className="px-3 py-1.5 rounded-lg border border-gray-300    text-gray-700    hover:bg-gray-50    hover:border-gray-500    transition ml-1">Haqqımızda</Link>
             </nav>
             <MobileNav />
           </div>
