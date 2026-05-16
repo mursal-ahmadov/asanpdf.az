@@ -34,15 +34,15 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <header className="border-b border-border bg-white/80 backdrop-blur sticky top-0 z-50">
-          <div className="max-w-6xl mx-auto px-4 h-24 flex items-center justify-between">
+          <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
             <Link href="/" className="flex items-center" aria-label="AsanPDF.az ana səhifə">
               <Image
                 src="/logo.png"
                 alt="AsanPDF.az"
-                width={600}
-                height={200}
+                width={240}
+                height={80}
                 priority
-                className="h-20 sm:h-24 w-auto"
+                className="h-12 w-auto"
               />
             </Link>
             <nav className="hidden sm:flex items-center gap-4 lg:gap-6 text-sm">
