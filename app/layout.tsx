@@ -35,14 +35,14 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <header className="border-b border-border bg-white/80 backdrop-blur sticky top-0 z-50">
           <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
-            <Link href="/" className="relative block h-14 sm:h-16 w-[160px] sm:w-[200px]" aria-label="AsanPDF.az ana səhifə">
+            <Link href="/" className="flex items-center" aria-label="AsanPDF.az ana səhifə">
               <Image
                 src="/logo.png"
                 alt="AsanPDF.az"
-                fill
+                width={637}
+                height={577}
                 priority
-                sizes="200px"
-                className="object-contain object-left"
+                className="h-14 sm:h-16 w-auto"
               />
             </Link>
             <nav className="hidden sm:flex items-center gap-1 text-sm font-medium">
