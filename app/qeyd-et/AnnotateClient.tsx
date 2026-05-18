@@ -601,7 +601,7 @@ export default function AnnotateClient() {
       </div>
 
       <p className="sm:hidden text-center text-xs text-muted mt-2">
-        💡 2 barmaqla pinch et — yaxınlaşdır və ya uzaqlaşdır
+        💡 2 barmaqla — yaxınlaşdır və ya uzaqlaşdır
       </p>
 
       {error && <p className="mt-4 text-red-600 text-sm text-center">{error}</p>}
