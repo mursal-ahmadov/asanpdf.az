@@ -71,6 +71,7 @@ export default function RootLayout({
               <Link href="/sekil-to-pdf" className="px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-400 transition">Şəkil → PDF</Link>
               <Link href="/pdf-to-sekil" className="px-3 py-1.5 rounded-lg border border-pink-200   text-pink-700    hover:bg-pink-50    hover:border-pink-400    transition">PDF → Şəkil</Link>
               <Link href="/sixisdir"    className="px-3 py-1.5 rounded-lg border border-indigo-200  text-indigo-700  hover:bg-indigo-50  hover:border-indigo-400  transition">Sıxışdır</Link>
+              <Link href="/qeyd-et"     className="px-3 py-1.5 rounded-lg border border-yellow-300  text-yellow-700  hover:bg-yellow-50  hover:border-yellow-500  transition">Qeyd et</Link>
               <Link href="/haqqimizda"  className="px-3 py-1.5 rounded-lg border border-gray-300    text-gray-700    hover:bg-gray-50    hover:border-gray-500    transition ml-1">Haqqımızda</Link>
             </nav>
             <MobileNav />

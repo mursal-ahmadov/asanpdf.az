@@ -13,6 +13,7 @@ const links = [
   { href: "/sekil-to-pdf", label: "Şəkil → PDF" },
   { href: "/pdf-to-sekil", label: "PDF → Şəkil" },
   { href: "/sixisdir", label: "PDF Sıxışdır" },
+  { href: "/qeyd-et", label: "Üzərində qeyd et" },
   { href: "/haqqimizda", label: "Haqqımızda" },
 ];
 

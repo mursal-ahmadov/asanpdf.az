@@ -89,7 +89,7 @@ AsanPDF.az/
 └── CLAUDE.md                   # Bu sənəd
 ```
 
-## 6. 8 PDF aləti (hamısı brauzerdə işləyir)
+## 6. 9 PDF aləti (hamısı brauzerdə işləyir)
 
 | URL | Funksiya | Texnologiya | Status |
 |-----|----------|-------------|--------|
@@ -98,9 +98,12 @@ AsanPDF.az/
 | `/sehife-sil` | Səhifə sil | pdf-lib | ✅ |
 | `/cixar` | Səhifə çıxar | pdf-lib | ✅ |
 | `/donder` | Səhifə döndər | pdf-lib | ✅ |
-| `/sekil-to-pdf` | Şəkil → PDF | pdf-lib (embedJpg/Png) | ✅ |
+| `/sekil-to-pdf` | Şəkil → PDF (EXIF düzəlişi ilə) | pdf-lib + exifr + canvas | ✅ |
 | `/pdf-to-sekil` | PDF → JPG | pdfjs-dist (canvas) | ✅ |
 | `/sixisdir` | PDF Sıxışdır (Compress) | pdfjs-dist + pdf-lib (rasterize → JPEG → embed) | ✅ |
+| `/qeyd-et` | PDF üzərində qeyd et (marker, dairə, qələm) | pdfjs-dist (canvas overlay) + pdf-lib (drawRectangle/Ellipse/Line) | ✅ |
+
+**Annotation qeydi:** `/qeyd-et` ən mürəkkəb UI-dir — pdfjs-dist ilə PDF səhifəsi canvas-a render olunur, üst-üstə şəffaf overlay canvas qoyulur. Pointer event-ləri (touch + mouse + stylus) ilə istifadəçi sahə seçir. Annotation-lar PDF koordinatlarında saxlanır (səhifə yüklənərkən ölçü dəyişsə də stabil olur). Y oxu çevrilir (canvas top-down → PDF bottom-up). Tətbiq vaxtı pdf-lib `drawRectangle` (marker, opacity 0.4), `drawEllipse` (dairə, borderOnly), `drawLine` (qələm seqmentləri) çağırılır. Undo/redo stack saxlanır. Mobil üçün sticky bottom toolbar.
 
 **pdfjs worker faylı:** `public/pdf.worker.min.mjs` — `node_modules/pdfjs-dist/build/`-dən kopyalandı. `?url` import sintaksisi production-da işləmir (Turbopack/Webpack uyğunsuzluğu). `pdfjs-dist` paketi yenilənəndə bu faylı **manual olaraq yenidən kopyala**:
 ```bash

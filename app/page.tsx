@@ -41,6 +41,11 @@ const tools = [
     icon: "🗜️", anim: "anim-compress",
     color: "from-indigo-500 to-blue-700", glow: "hover:shadow-indigo-500/25", iconBg: "bg-indigo-50", ring: "group-hover:ring-indigo-200",
   },
+  {
+    href: "/qeyd-et", title: "Üzərində qeyd et", desc: "Marker, dairə, qələm — PDF üstündə",
+    icon: "🖍", anim: "anim-mark",
+    color: "from-yellow-500 to-orange-500", glow: "hover:shadow-yellow-500/25", iconBg: "bg-yellow-50", ring: "group-hover:ring-yellow-200",
+  },
 ];
 
 export default function Home() {

@@ -15,7 +15,7 @@ function getBaseUrl(): string {
   return "http://localhost:3000";
 }
 
-const paths = ["", "/birlesdir", "/ayir", "/sehife-sil", "/cixar", "/donder", "/sekil-to-pdf", "/pdf-to-sekil", "/sixisdir", "/haqqimizda"];
+const paths = ["", "/birlesdir", "/ayir", "/sehife-sil", "/cixar", "/donder", "/sekil-to-pdf", "/pdf-to-sekil", "/sixisdir", "/qeyd-et", "/haqqimizda"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = getBaseUrl();
