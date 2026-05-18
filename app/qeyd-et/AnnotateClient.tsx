@@ -30,7 +30,7 @@ const COLORS: ColorOption[] = [
 ];
 
 const MARKER_WIDTHS = [10, 16, 24, 32];
-const STROKE_WIDTHS = [2, 3, 5, 8];
+const STROKE_WIDTHS = [2, 4, 7, 11, 16];
 
 type Point = { x: number; y: number };
 
@@ -429,27 +429,7 @@ export default function AnnotateClient() {
 
         <ColorPicker value={color} onChange={setColor} />
 
-        <div className="flex gap-1 items-center border-l border-border pl-3">
-          <span className="text-xs text-muted mr-1">Qalınlıq:</span>
-          {widthOptions.map((w) => (
-            <button
-              key={w}
-              onClick={() => setCurrentWidth(w)}
-              title={`${w} pt`}
-              className={`w-9 h-9 rounded-lg flex items-center justify-center transition
-                ${currentWidth === w ? "bg-blue-100 ring-2 ring-accent" : "hover:bg-gray-100"}`}
-            >
-              <span
-                className="block rounded-full"
-                style={{
-                  width: Math.min(w + 2, 20),
-                  height: Math.min(w + 2, 20),
-                  backgroundColor: tool === "marker" ? color + MARKER_OPACITY_HEX : color,
-                }}
-              />
-            </button>
-          ))}
-        </div>
+        <WidthPicker value={currentWidth} onChange={setCurrentWidth} options={widthOptions} />
 
         <div className="flex gap-1 ml-auto">
           <IconButton onClick={undo} disabled={annotations.length === 0} title="Geri">↶</IconButton>
@@ -524,23 +504,7 @@ export default function AnnotateClient() {
           <div className="w-px h-8 bg-border mx-0.5" />
           <ColorPicker value={color} onChange={setColor} compact />
           <div className="w-px h-8 bg-border mx-0.5" />
-          {widthOptions.map((w) => (
-            <button
-              key={w}
-              onClick={() => setCurrentWidth(w)}
-              className={`w-9 h-9 rounded-lg flex items-center justify-center transition shrink-0
-                ${currentWidth === w ? "bg-blue-100 ring-2 ring-accent" : "hover:bg-gray-100"}`}
-            >
-              <span
-                className="block rounded-full"
-                style={{
-                  width: Math.min(w + 2, 20),
-                  height: Math.min(w + 2, 20),
-                  backgroundColor: tool === "marker" ? color + MARKER_OPACITY_HEX : color,
-                }}
-              />
-            </button>
-          ))}
+          <WidthPicker value={currentWidth} onChange={setCurrentWidth} options={widthOptions} compact />
           <div className="w-px h-8 bg-border mx-0.5" />
           <IconButton onClick={undo} disabled={annotations.length === 0}>↶</IconButton>
           <IconButton onClick={redo} disabled={redoStack.length === 0}>↷</IconButton>
@@ -656,6 +620,78 @@ function ColorPicker({
               aria-label="Xüsusi rəng seç"
             />
           </label>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WidthPicker({
+  value,
+  onChange,
+  options,
+  compact = false,
+}: {
+  value: number;
+  onChange: (w: number) => void;
+  options: number[];
+  compact?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent | TouchEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("touchstart", onDown);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("touchstart", onDown);
+    };
+  }, [open]);
+
+  const previewSize = (w: number) => Math.min(Math.max(w + 2, 4), 22);
+
+  return (
+    <div className="relative shrink-0" ref={rootRef}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition border border-border"
+        aria-label="Qalınlıq seç"
+      >
+        <span
+          className="block rounded-full bg-gray-900"
+          style={{ width: previewSize(value), height: previewSize(value) }}
+        />
+        {!compact && <span className="text-sm font-medium">Qalınlıq</span>}
+        <span className="text-xs text-muted">▾</span>
+      </button>
+
+      {open && (
+        <div
+          className={`absolute z-50 p-3 bg-white border border-border rounded-xl shadow-xl
+            ${compact ? "bottom-full mb-2 left-0" : "top-full mt-2 left-0"}`}
+        >
+          <p className="text-xs text-muted mb-2">Qalınlıq</p>
+          <div className="flex items-center gap-1.5">
+            {options.map((w) => (
+              <button
+                key={w}
+                onClick={() => { onChange(w); setOpen(false); }}
+                title={`${w} pt`}
+                className={`w-11 h-11 rounded-lg flex items-center justify-center transition
+                  ${value === w ? "bg-blue-100 ring-2 ring-accent" : "hover:bg-gray-100"}`}
+              >
+                <span
+                  className="block rounded-full bg-gray-900"
+                  style={{ width: previewSize(w), height: previewSize(w) }}
+                />
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
