@@ -52,8 +52,7 @@ export default function AboutPage() {
             <h3 className="font-semibold mb-1">💯 Tamamilə pulsuz</h3>
             <p className="text-sm text-muted">
               Qeydiyyat yoxdur. Limit yoxdur. Gizli ödəniş yoxdur. İstədiyin
-              qədər fayl, istədiyin qədər səhifə ilə işləyə bilərsən. Bu
-              vədimizdir.
+              qədər fayl, istədiyin qədər səhifə ilə işləyə bilərsən.
             </p>
           </div>
 

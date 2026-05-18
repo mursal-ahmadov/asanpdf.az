@@ -11,16 +11,26 @@ type Tool = "marker" | "circle" | "pen";
 
 type ColorOption = { name: string; hex: string };
 
+// Expanded palette with true highlighter / pen colors
 const COLORS: ColorOption[] = [
-  { name: "Sarı",      hex: "#facc15" },
-  { name: "Yaşıl",     hex: "#22c55e" },
-  { name: "Çəhrayı",   hex: "#ec4899" },
-  { name: "Mavi",      hex: "#3b82f6" },
-  { name: "Qırmızı",   hex: "#ef4444" },
-  { name: "Bənövşəyi", hex: "#a855f7" },
-  { name: "Narıncı",   hex: "#f97316" },
-  { name: "Qara",      hex: "#000000" },
+  { name: "Sarı",         hex: "#FFEB3B" }, // True highlighter yellow
+  { name: "Kəhraba",      hex: "#FFC107" },
+  { name: "Narıncı",      hex: "#FF9800" },
+  { name: "Qırmızı",      hex: "#F44336" },
+  { name: "Çəhrayı",      hex: "#E91E63" },
+  { name: "Bənövşəyi",    hex: "#9C27B0" },
+  { name: "İndigo",       hex: "#3F51B5" },
+  { name: "Mavi",         hex: "#2196F3" },
+  { name: "Mavi-yaşıl",   hex: "#00BCD4" },
+  { name: "Yaşıl",        hex: "#4CAF50" },
+  { name: "Açıq yaşıl",   hex: "#8BC34A" },
+  { name: "Qəhvəyi",      hex: "#795548" },
+  { name: "Boz",          hex: "#607D8B" },
+  { name: "Qara",         hex: "#000000" },
 ];
+
+const MARKER_WIDTHS = [10, 16, 24, 32];
+const STROKE_WIDTHS = [2, 3, 5, 8];
 
 type Point = { x: number; y: number };
 
@@ -30,11 +40,11 @@ type PenAnn     = { id: string; type: "pen";    pageIndex: number; color: string
 
 type Annotation = MarkerAnn | CircleAnn | PenAnn;
 
-const MARKER_WIDTH = 16; // PDF points — thick highlighter stroke
-const MARKER_OPACITY_HEX = "55"; // ~33% — translucent overlay
-
 type PdfJsLib = typeof import("pdfjs-dist");
 type PdfJsDoc = Awaited<ReturnType<PdfJsLib["getDocument"]>["promise"]>;
+
+const MARKER_OPACITY_HEX = "55"; // ~33% — translucent overlay
+const MARKER_OPACITY_PDF = 0.35;
 
 function hexToPdfRgb(hex: string) {
   const r = parseInt(hex.slice(1, 3), 16) / 255;
@@ -52,7 +62,19 @@ export default function AnnotateClient() {
 
   const [tool, setTool] = useState<Tool>("marker");
   const [color, setColor] = useState<string>(COLORS[0].hex);
-  const [strokeWidth, setStrokeWidth] = useState<number>(3);
+
+  // Per-tool width memory
+  const [markerWidth, setMarkerWidth] = useState(16);
+  const [penWidth, setPenWidth] = useState(3);
+  const [circleWidth, setCircleWidth] = useState(3);
+
+  const currentWidth = tool === "marker" ? markerWidth : tool === "circle" ? circleWidth : penWidth;
+  const setCurrentWidth = (w: number) => {
+    if (tool === "marker") setMarkerWidth(w);
+    else if (tool === "circle") setCircleWidth(w);
+    else setPenWidth(w);
+  };
+  const widthOptions = tool === "marker" ? MARKER_WIDTHS : STROKE_WIDTHS;
 
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [redoStack, setRedoStack] = useState<Annotation[]>([]);
@@ -67,7 +89,6 @@ export default function AnnotateClient() {
   const drawCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const scaleRef = useRef<number>(1);
-  const pageWidthRef = useRef<number>(0);
   const pageHeightRef = useRef<number>(0);
 
   const onPick = async (files: File[]) => {
@@ -82,7 +103,6 @@ export default function AnnotateClient() {
       setOriginalBytes(buf);
       const pdfjs = await import("pdfjs-dist");
       pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
-      // Clone buffer because pdfjs detaches it
       const cloneForPdfJs = buf.slice(0);
       const doc = await pdfjs.getDocument({ data: cloneForPdfJs }).promise;
       setPdfDoc(doc);
@@ -104,7 +124,6 @@ export default function AnnotateClient() {
 
     const page = await pdfDoc.getPage(pageIndex + 1);
     const unscaled = page.getViewport({ scale: 1 });
-    pageWidthRef.current = unscaled.width;
     pageHeightRef.current = unscaled.height;
 
     const containerWidth = Math.max(280, container.clientWidth - 4);
@@ -133,9 +152,7 @@ export default function AnnotateClient() {
     await page.render({ canvasContext: ctx, viewport, canvas: pdfCanvas }).promise;
   }, [pdfDoc, pageIndex]);
 
-  useEffect(() => {
-    renderPage();
-  }, [renderPage]);
+  useEffect(() => { renderPage(); }, [renderPage]);
 
   useEffect(() => {
     const onResize = () => renderPage();
@@ -197,11 +214,8 @@ export default function AnnotateClient() {
     }
   }, [annotations, pageIndex, drafting]);
 
-  useEffect(() => {
-    redrawOverlay();
-  }, [redrawOverlay]);
+  useEffect(() => { redrawOverlay(); }, [redrawOverlay]);
 
-  // Pointer → PDF coordinates
   const eventToPdfCoords = (e: React.PointerEvent<HTMLCanvasElement>): Point => {
     const canvas = e.currentTarget;
     const rect = canvas.getBoundingClientRect();
@@ -220,11 +234,11 @@ export default function AnnotateClient() {
     draftStartRef.current = p;
     const id = crypto.randomUUID();
     if (tool === "marker") {
-      setDrafting({ id, type: "marker", pageIndex, color, points: [p], strokeWidth: MARKER_WIDTH });
+      setDrafting({ id, type: "marker", pageIndex, color, points: [p], strokeWidth: markerWidth });
     } else if (tool === "circle") {
-      setDrafting({ id, type: "circle", pageIndex, color, cx: p.x, cy: p.y, rx: 0, ry: 0, strokeWidth });
+      setDrafting({ id, type: "circle", pageIndex, color, cx: p.x, cy: p.y, rx: 0, ry: 0, strokeWidth: circleWidth });
     } else {
-      setDrafting({ id, type: "pen", pageIndex, color, points: [p], strokeWidth });
+      setDrafting({ id, type: "pen", pageIndex, color, points: [p], strokeWidth: penWidth });
     }
   };
 
@@ -249,13 +263,10 @@ export default function AnnotateClient() {
   const onPointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!drafting) return;
     e.preventDefault();
-    // Filter out tiny accidental marks
     let keep = true;
-    if (drafting.type === "marker") {
-      if (drafting.points.length < 2) keep = false;
-    } else if (drafting.type === "circle") {
+    if (drafting.type === "circle") {
       if (drafting.rx < 2 && drafting.ry < 2) keep = false;
-    } else if (drafting.type === "pen") {
+    } else {
       if (drafting.points.length < 2) keep = false;
     }
     if (keep) {
@@ -311,7 +322,7 @@ export default function AnnotateClient() {
               end: { x: end.x, y: end.y },
               thickness: a.strokeWidth,
               color,
-              opacity: 0.35,
+              opacity: MARKER_OPACITY_PDF,
               lineCap: 1,
             });
           }
@@ -334,7 +345,7 @@ export default function AnnotateClient() {
               end: { x: end.x, y: end.y },
               thickness: a.strokeWidth,
               color,
-              lineCap: 1, // Round cap for smoother freehand
+              lineCap: 1,
             });
           }
         }
@@ -375,7 +386,7 @@ export default function AnnotateClient() {
         {error && <p className="mt-4 text-red-600 text-sm text-center">{error}</p>}
 
         <ToolInfo
-          what="PDF-i redaktə etmədən üstündə işarələr əlavə et: sarı/yaşıl marker, dairə, sərbəst xətt. Çoxlu rəng seçimi, hər səhifə üçün ayrı qeydlər."
+          what="PDF-i redaktə etmədən üstündə işarələr əlavə et: marker, dairə, sərbəst xətt. 14 hazır rəng + xüsusi rəng seçimi, hər səhifə üçün ayrı qeydlər."
           whenToUse={[
             "Müqavilədə vacib hissələri vurğulamaq",
             "Tələbə referatında diqqət çəkilən yerləri işarələmək",
@@ -384,7 +395,7 @@ export default function AnnotateClient() {
           ]}
           howSteps={[
             "PDF faylı seç",
-            "Yuxarıdan alət seç (Marker, Dairə, və ya Qələm) və rəng seç",
+            "Yuxarıdan alət seç (Marker, Dairə, və ya Qələm), rəng və qalınlıq seç",
             "PDF üstündə sürüşdür, sonra \"Tətbiq et və yüklə\"",
           ]}
         />
@@ -393,8 +404,8 @@ export default function AnnotateClient() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-2 sm:px-4 py-4 sm:py-8 pb-28 sm:pb-8">
-      {/* Header info */}
+    <div className="max-w-5xl mx-auto px-2 sm:px-4 py-4 sm:py-8 pb-32 sm:pb-8">
+      {/* File info */}
       <div className="px-2 sm:px-0 mb-3 sm:mb-4 flex items-center justify-between gap-2">
         <div className="min-w-0">
           <p className="font-medium truncate text-sm sm:text-base">{file.name}</p>
@@ -416,31 +427,33 @@ export default function AnnotateClient() {
           <ToolButton active={tool === "pen"} onClick={() => setTool("pen")} icon="✏️" label="Qələm" />
         </div>
 
-        <div className="flex gap-1.5 items-center border-r border-border pr-3">
-          {COLORS.map((c) => (
-            <ColorSwatch key={c.hex} color={c} active={color === c.hex} onClick={() => setColor(c.hex)} />
+        <ColorPicker value={color} onChange={setColor} />
+
+        <div className="flex gap-1 items-center border-l border-border pl-3">
+          <span className="text-xs text-muted mr-1">Qalınlıq:</span>
+          {widthOptions.map((w) => (
+            <button
+              key={w}
+              onClick={() => setCurrentWidth(w)}
+              title={`${w} pt`}
+              className={`w-9 h-9 rounded-lg flex items-center justify-center transition
+                ${currentWidth === w ? "bg-blue-100 ring-2 ring-accent" : "hover:bg-gray-100"}`}
+            >
+              <span
+                className="block rounded-full"
+                style={{
+                  width: Math.min(w + 2, 20),
+                  height: Math.min(w + 2, 20),
+                  backgroundColor: tool === "marker" ? color + MARKER_OPACITY_HEX : color,
+                }}
+              />
+            </button>
           ))}
         </div>
 
-        {(tool === "circle" || tool === "pen") && (
-          <div className="flex gap-1 items-center border-r border-border pr-3">
-            <span className="text-xs text-muted mr-1">Qalınlıq:</span>
-            {[2, 3, 5, 8].map((w) => (
-              <button
-                key={w}
-                onClick={() => setStrokeWidth(w)}
-                className={`w-8 h-8 rounded-lg flex items-center justify-center transition
-                  ${strokeWidth === w ? "bg-blue-100 ring-2 ring-accent" : "hover:bg-gray-100"}`}
-              >
-                <span className="rounded-full bg-gray-700 block" style={{ width: w + 2, height: w + 2 }} />
-              </button>
-            ))}
-          </div>
-        )}
-
         <div className="flex gap-1 ml-auto">
-          <IconButton onClick={undo} disabled={annotations.length === 0} title="Geri (Ctrl+Z)">↶</IconButton>
-          <IconButton onClick={redo} disabled={redoStack.length === 0} title="İrəli (Ctrl+Shift+Z)">↷</IconButton>
+          <IconButton onClick={undo} disabled={annotations.length === 0} title="Geri">↶</IconButton>
+          <IconButton onClick={redo} disabled={redoStack.length === 0} title="İrəli">↷</IconButton>
           <IconButton onClick={clearCurrentPage} title="Bu səhifəni təmizlə">🗑</IconButton>
         </div>
       </div>
@@ -484,20 +497,14 @@ export default function AnnotateClient() {
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
             className="absolute"
-            style={{
-              touchAction: "none",
-              cursor:
-                tool === "marker" ? "crosshair" :
-                tool === "circle" ? "crosshair" :
-                "crosshair",
-            }}
+            style={{ touchAction: "none", cursor: "crosshair" }}
           />
         </div>
       </div>
 
       {error && <p className="mt-4 text-red-600 text-sm text-center">{error}</p>}
 
-      {/* Apply button — desktop */}
+      {/* Apply — desktop */}
       <div className="hidden sm:block mt-6 text-center">
         <button
           onClick={applyAndDownload}
@@ -510,15 +517,31 @@ export default function AnnotateClient() {
 
       {/* Mobile sticky toolbar */}
       <div className="sm:hidden fixed left-0 right-0 bottom-0 z-40 bg-white border-t border-border shadow-lg">
-        <div className="flex items-center gap-1 px-2 py-2 overflow-x-auto">
+        <div className="flex items-center gap-1.5 px-2 py-2 overflow-x-auto">
           <ToolButton active={tool === "marker"} onClick={() => setTool("marker")} icon="🖍" label="Marker" compact />
           <ToolButton active={tool === "circle"} onClick={() => setTool("circle")} icon="⭕" label="Dairə" compact />
           <ToolButton active={tool === "pen"} onClick={() => setTool("pen")} icon="✏️" label="Qələm" compact />
-          <div className="w-px h-8 bg-border mx-1" />
-          {COLORS.map((c) => (
-            <ColorSwatch key={c.hex} color={c} active={color === c.hex} onClick={() => setColor(c.hex)} />
+          <div className="w-px h-8 bg-border mx-0.5" />
+          <ColorPicker value={color} onChange={setColor} compact />
+          <div className="w-px h-8 bg-border mx-0.5" />
+          {widthOptions.map((w) => (
+            <button
+              key={w}
+              onClick={() => setCurrentWidth(w)}
+              className={`w-9 h-9 rounded-lg flex items-center justify-center transition shrink-0
+                ${currentWidth === w ? "bg-blue-100 ring-2 ring-accent" : "hover:bg-gray-100"}`}
+            >
+              <span
+                className="block rounded-full"
+                style={{
+                  width: Math.min(w + 2, 20),
+                  height: Math.min(w + 2, 20),
+                  backgroundColor: tool === "marker" ? color + MARKER_OPACITY_HEX : color,
+                }}
+              />
+            </button>
           ))}
-          <div className="w-px h-8 bg-border mx-1" />
+          <div className="w-px h-8 bg-border mx-0.5" />
           <IconButton onClick={undo} disabled={annotations.length === 0}>↶</IconButton>
           <IconButton onClick={redo} disabled={redoStack.length === 0}>↷</IconButton>
         </div>
@@ -564,24 +587,78 @@ function ToolButton({
   );
 }
 
-function ColorSwatch({
-  color,
-  active,
-  onClick,
+function ColorPicker({
+  value,
+  onChange,
+  compact = false,
 }: {
-  color: ColorOption;
-  active: boolean;
-  onClick: () => void;
+  value: string;
+  onChange: (color: string) => void;
+  compact?: boolean;
 }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent | TouchEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("touchstart", onDown);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("touchstart", onDown);
+    };
+  }, [open]);
+
   return (
-    <button
-      onClick={onClick}
-      title={color.name}
-      className={`w-8 h-8 rounded-full transition shrink-0 ring-offset-2
-        ${active ? "ring-2 ring-accent scale-110" : "ring-1 ring-gray-300 hover:ring-gray-500"}`}
-      style={{ backgroundColor: color.hex }}
-      aria-label={`Rəng: ${color.name}`}
-    />
+    <div className="relative shrink-0" ref={rootRef}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition border border-border"
+        aria-label="Rəng seç"
+      >
+        <span
+          className="w-5 h-5 rounded-full ring-1 ring-gray-300 inline-block"
+          style={{ backgroundColor: value }}
+        />
+        {!compact && <span className="text-sm font-medium">Rəng</span>}
+        <span className="text-xs text-muted">▾</span>
+      </button>
+
+      {open && (
+        <div
+          className={`absolute z-50 p-3 bg-white border border-border rounded-xl shadow-xl w-64
+            ${compact ? "bottom-full mb-2 left-0" : "top-full mt-2 left-0"}`}
+        >
+          <p className="text-xs text-muted mb-2">Hazır rənglər</p>
+          <div className="grid grid-cols-7 gap-1.5 mb-3">
+            {COLORS.map((c) => (
+              <button
+                key={c.hex}
+                onClick={() => { onChange(c.hex); setOpen(false); }}
+                title={c.name}
+                className={`w-7 h-7 rounded-full transition
+                  ${value === c.hex ? "ring-2 ring-accent ring-offset-2 scale-110" : "ring-1 ring-gray-300 hover:scale-110"}`}
+                style={{ backgroundColor: c.hex }}
+                aria-label={c.name}
+              />
+            ))}
+          </div>
+          <label className="flex items-center justify-between gap-2 pt-3 border-t border-border">
+            <span className="text-xs text-muted">Xüsusi rəng:</span>
+            <input
+              type="color"
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              className="w-12 h-8 rounded cursor-pointer border border-border"
+              aria-label="Xüsusi rəng seç"
+            />
+          </label>
+        </div>
+      )}
+    </div>
   );
 }
 
