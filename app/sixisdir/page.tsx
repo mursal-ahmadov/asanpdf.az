@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import CompressClient from "./CompressClient";
 
 export const metadata: Metadata = {
-  title: "PDF Sıxışdır — Fayl ölçüsünü azalt onlayn | AsanPDF.az",
+  title: "PDF Sıxışdır — Fayl ölçüsünü azalt onlayn | AsanPDF.com",
   description:
     "PDF faylının ölçüsünü 50-90% azalt. Email-lə göndərmək üçün rahat. Pulsuz, brauzerdə işləyir, fayl heç yerə yüklənmir.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "/sixisdir" },
   openGraph: {
-    title: "PDF Sıxışdır — AsanPDF.az",
+    title: "PDF Sıxışdır — AsanPDF.com",
     description: "PDF fayl ölçüsünü 50-90% azalt. Pulsuz və sürətli.",
     type: "website",
   },

@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AsanPDF.az — PDF alətləri pulsuz və onlayn",
+  title: "AsanPDF.com — PDF alətləri pulsuz və onlayn",
   description:
     "PDF birləşdir, ayır, səhifə sil, şəkildən PDF yarat. Hər şey brauzerdə işləyir — faylların heç yerə yüklənmir.",
 };
@@ -35,10 +35,10 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <header className="border-b border-border bg-white/80 backdrop-blur sticky top-0 z-50">
           <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
-            <Link href="/" className="flex items-center" aria-label="AsanPDF.az ana səhifə">
+            <Link href="/" className="flex items-center" aria-label="AsanPDF.com ana səhifə">
               <Image
                 src="/logo.png"
-                alt="AsanPDF.az"
+                alt="AsanPDF.com"
                 width={637}
                 height={577}
                 priority
@@ -65,7 +65,7 @@ export default function RootLayout({
         <footer className="border-t border-border py-4">
           <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted">
             <span className="text-center sm:text-left">
-              © {new Date().getFullYear()} AsanPDF.az — Pulsuz və sürətli PDF alətləri
+              © {new Date().getFullYear()} AsanPDF.com — Pulsuz və sürətli PDF alətləri
             </span>
             <Link
               href="/haqqimizda"

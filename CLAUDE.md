@@ -1,4 +1,4 @@
-# AsanPDF.az — Layihə Sənədləri (AI üçün)
+# AsanPDF.com — Layihə Sənədləri (AI üçün)
 
 Bu sənəd növbəti AI sessiyaları üçündür. Layihə tarixçəsi, qərarlar, texniki detallar və iş axını burada toplanıb.
 
@@ -6,7 +6,7 @@ Bu sənəd növbəti AI sessiyaları üçündür. Layihə tarixçəsi, qərarlar
 
 ## 1. Layihə nədir?
 
-**AsanPDF.az** — Azərbaycan dilində pulsuz onlayn PDF alətləri saytı. Hədəf: iLovePDF / SmallPDF / PDF24 kimi qlobal saytların **azərbaycandilli alternativi**.
+**AsanPDF.com** — Azərbaycan dilində pulsuz onlayn PDF alətləri saytı. Hədəf: iLovePDF / SmallPDF / PDF24 kimi qlobal saytların **azərbaycandilli alternativi**.
 
 **Sayt:** https://asanpdf.com (əsas) · https://asanpdf-az.vercel.app (yedek)
 **Repo:** https://github.com/mursal-ahmadov/asanpdf.az (public)
@@ -47,7 +47,7 @@ Bu prinsiplər layihənin əsasıdır — istənilən qərar bunlardan keçməli
 
 **Hosting:** Vercel (Free plan, hobby) — avtomatik deploy GitHub `main` branch-dən.
 **DNS:** Cloudflare (Free plan) — domen təsdiqi gözlənilir.
-**Domen:** `asanpdf.az` (hostarex.az-dən alındı, 50 AZN/il). Cloudflare-ə yönləndirilib.
+**Domen:** `asanpdf.com` (Cloudflare Registrar-dan, ~$10/il). Cloudflare-də idarə olunur.
 
 ## 5. Qovluq strukturu
 
@@ -214,12 +214,7 @@ Bütün cavablar bu başlıqlarla gəlir:
 - HTTPS Vercel tərəfindən avtomatik
 - `NEXT_PUBLIC_SITE_URL=https://asanpdf.com` Vercel env var-da
 
-**Yedek:** `asanpdf-az.vercel.app` hələ də işləyir.
-
-**asanpdf.az (gələcək):**
-- Hostarex.az/hostinq.az-dan alınmağa cəhd edildi (50 AZN), amma ödəniş sistemdə ilişdi, domen rəsmi qeydiyyat almadı (WHOIS-də görünmür)
-- Chargeback başladıldı (bank vasitəsilə pul geri qaytarılır)
-- Sonradan **nic.az**-dan alıb əlavə etmək olar — eyni Vercel proyektinə əlavə edilər, hər iki domen sayta yönləndirilər (SEO üçün canonical-i .com saxla)
+**Yedek:** `asanpdf-az.vercel.app` hələ də işləyir (Vercel default subdomain).
 
 **SSL almaq lazım deyil** — Vercel avtomatik verir, pulsuz.
 
@@ -235,7 +230,6 @@ Bütün cavablar bu başlıqlarla gəlir:
 
 - ❌ Favicon hələ ki yaxşı görünmür kiçik ölçüdə (icon.png horizontal logodur, kvadrat olmalıdır)
 - ❌ Google Sitemap status hələ uğursuzdur (yenidir, gözlə)
-- ❌ `asanpdf.az` domeni hələ aktiv deyil (Cloudflare gözləyir)
 - ⏳ Open Graph şəkil yoxdur (sosial mediada paylaşılanda gözəl görünmür)
 - ⏳ "Email göndər" formu yoxdur (sahib hələ istəmir)
 - ⏳ Sosial media linki yoxdur (yoxdur)

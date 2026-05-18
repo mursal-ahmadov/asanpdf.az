@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 function getBaseUrl(): string {
-  // Manual override (set NEXT_PUBLIC_SITE_URL in Vercel when asanpdf.az is connected)
+  // Manual override (set NEXT_PUBLIC_SITE_URL in Vercel for the production domain)
   if (process.env.NEXT_PUBLIC_SITE_URL) {
     return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
   }

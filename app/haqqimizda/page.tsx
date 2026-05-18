@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Haqqımızda — AsanPDF.az",
+  title: "Haqqımızda — AsanPDF.com",
   description:
-    "AsanPDF.az nə üçün qurulub və kimə xidmət edir. Pulsuz, reklamsız, məxfi PDF alətləri.",
+    "AsanPDF.com nə üçün qurulub və kimə xidmət edir. Pulsuz, reklamsız, məxfi PDF alətləri.",
 };
 
 export default function AboutPage() {
@@ -19,7 +19,7 @@ export default function AboutPage() {
 
       <article className="space-y-6 text-[15px] sm:text-base leading-relaxed text-gray-700">
         <p>
-          <strong className="text-gray-900">AsanPDF.az</strong> Azərbaycan
+          <strong className="text-gray-900">AsanPDF.com</strong> Azərbaycan
           dilində, pulsuz və sadə PDF alətləri toplusudur. Məqsədimiz birdir —
           gündəlik işində PDF ilə qarşılaşan hər kəsə bu işi rahat və sürətli
           görməyə kömək etmək.
@@ -90,7 +90,7 @@ export default function AboutPage() {
         </p>
 
         <p className="pt-2">
-          AsanPDF.az-i istifadə etdiyin üçün təşəkkür edirik. Ümid edirik ki,
+          AsanPDF.com-i istifadə etdiyin üçün təşəkkür edirik. Ümid edirik ki,
           sənə kömək edə bildik.
         </p>
       </article>
