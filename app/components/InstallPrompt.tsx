@@ -109,7 +109,7 @@ export default function InstallPrompt() {
             </p>
           ) : (
             <p className="text-xs text-muted leading-relaxed">
-              AsanPDF-i bir kliklə ana ekranına əlavə et — sanki adi tətbiq kimi
+              AsanPDF-i bir kliklə ana ekranına əlavə et — mobil tətbiq kimi
               istifadə et.
             </p>
           )}

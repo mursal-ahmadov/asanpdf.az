@@ -6,6 +6,7 @@ import FileDrop from "../components/FileDrop";
 import ToolHeader from "../components/ToolHeader";
 import ToolInfo from "../components/ToolInfo";
 import { downloadBlob, formatSize } from "../lib/download";
+import { loadImageNormalized } from "../lib/image-orientation";
 
 export default function ImageToPdfPage() {
   const [files, setFiles] = useState<File[]>([]);
@@ -34,13 +35,11 @@ export default function ImageToPdfPage() {
     try {
       const doc = await PDFDocument.create();
       for (const f of files) {
-        const bytes = await f.arrayBuffer();
-        let img;
-        if (f.type === "image/jpeg" || /\.jpe?g$/i.test(f.name)) {
-          img = await doc.embedJpg(bytes);
-        } else {
-          img = await doc.embedPng(bytes);
-        }
+        const normalized = await loadImageNormalized(f);
+        const img =
+          normalized.type === "jpeg"
+            ? await doc.embedJpg(normalized.bytes)
+            : await doc.embedPng(normalized.bytes);
         // A4 = 595 x 842 pt
         const pageW = 595;
         const pageH = 842;
