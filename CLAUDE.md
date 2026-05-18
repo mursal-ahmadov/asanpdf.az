@@ -8,7 +8,7 @@ Bu sənəd növbəti AI sessiyaları üçündür. Layihə tarixçəsi, qərarlar
 
 **AsanPDF.az** — Azərbaycan dilində pulsuz onlayn PDF alətləri saytı. Hədəf: iLovePDF / SmallPDF / PDF24 kimi qlobal saytların **azərbaycandilli alternativi**.
 
-**Sayt:** https://asanpdf-az.vercel.app (gələcəkdə `https://asanpdf.az`)
+**Sayt:** https://asanpdf.com (əsas) · https://asanpdf-az.vercel.app (yedek)
 **Repo:** https://github.com/mursal-ahmadov/asanpdf.az (public)
 **Sahibi:** mursal.ahmadov@gmail.com
 
@@ -203,19 +203,25 @@ Bütün cavablar bu başlıqlarla gəlir:
 - **Google Search Console:** sayt təsdiqlənib (HTML file metodu — `public/googlec4cf6d7c66c5a6c9.html`). Sitemap göndərilib amma **status hələ uğursuz** — sayt yenidir, Google yenidən cəhd edəcək.
 - **Meta tags:** hər səhifədə öz `metadata` exports (title, description). Multilingual hələ yox.
 
-## 11. Domen vəziyyəti (DƏYİŞƏN STATUS!)
+## 11. Domen vəziyyəti
 
-- Domen alındı (hostarex.az), 50 AZN/il
-- Nameserver-lər Cloudflare-ə yönləndirilib (`paislee.ns.cloudflare.com`, `yadiel.ns.cloudflare.com`)
-- **Cloudflare təsdiqi gözlənilir** (1-24 saat, sənəd tarixinə görə hələ bitməyib)
-- Aktiv olduqda:
-  1. Vercel → Settings → Domains → `asanpdf.az` əlavə et
-  2. Vercel A/CNAME göstərəcək → Cloudflare DNS-də əlavə et
-  3. 30-90 saniyəyə canlı, HTTPS avtomatik
-  4. Vercel-də env var əlavə et: `NEXT_PUBLIC_SITE_URL=https://asanpdf.az`
-  5. Sitemap avtomatik yeni domenə keçər
+**Əsas domen:** `asanpdf.com` ✅ (canlıdır, Cloudflare Registrar-dan ~$10/il)
+- Cloudflare-də qeydiyyatlı (`mursal.ebay@gmail.com` hesabı)
+- WHOIS Privacy aktiv (Cloudflare pulsuz)
+- DNS Cloudflare-də idarə olunur (`paislee.ns.cloudflare.com`, `yadiel.ns.cloudflare.com`)
+- Vercel-ə qoşulub (CNAME `@` və `www` → `e7c0285d7d5efb79.vercel-dns-017.com`)
+- Cloudflare Proxy **DNS only** (boz bulud — Vercel ilə konflikt olmasın deyə)
+- HTTPS Vercel tərəfindən avtomatik
+- `NEXT_PUBLIC_SITE_URL=https://asanpdf.com` Vercel env var-da
 
-**SSL almaq lazım deyil** — Vercel və Cloudflare avtomatik verir, pulsuz.
+**Yedek:** `asanpdf-az.vercel.app` hələ də işləyir.
+
+**asanpdf.az (gələcək):**
+- Hostarex.az/hostinq.az-dan alınmağa cəhd edildi (50 AZN), amma ödəniş sistemdə ilişdi, domen rəsmi qeydiyyat almadı (WHOIS-də görünmür)
+- Chargeback başladıldı (bank vasitəsilə pul geri qaytarılır)
+- Sonradan **nic.az**-dan alıb əlavə etmək olar — eyni Vercel proyektinə əlavə edilər, hər iki domen sayta yönləndirilər (SEO üçün canonical-i .com saxla)
+
+**SSL almaq lazım deyil** — Vercel avtomatik verir, pulsuz.
 
 ## 12. Logo və Favicon
 
