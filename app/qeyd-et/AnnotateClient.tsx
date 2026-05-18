@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { PDFDocument, rgb } from "pdf-lib";
 import FileDrop from "../components/FileDrop";
 import ToolHeader from "../components/ToolHeader";
@@ -11,9 +12,8 @@ type Tool = "marker" | "circle" | "pen";
 
 type ColorOption = { name: string; hex: string };
 
-// Expanded palette with true highlighter / pen colors
 const COLORS: ColorOption[] = [
-  { name: "Sarı",         hex: "#FFEB3B" }, // True highlighter yellow
+  { name: "Sarı",         hex: "#FFEB3B" },
   { name: "Kəhraba",      hex: "#FFC107" },
   { name: "Narıncı",      hex: "#FF9800" },
   { name: "Qırmızı",      hex: "#F44336" },
@@ -32,6 +32,9 @@ const COLORS: ColorOption[] = [
 const MARKER_WIDTHS = [10, 16, 24, 32];
 const STROKE_WIDTHS = [2, 4, 7, 11, 16];
 
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 4;
+
 type Point = { x: number; y: number };
 
 type MarkerAnn  = { id: string; type: "marker"; pageIndex: number; color: string; points: Point[]; strokeWidth: number };
@@ -43,7 +46,7 @@ type Annotation = MarkerAnn | CircleAnn | PenAnn;
 type PdfJsLib = typeof import("pdfjs-dist");
 type PdfJsDoc = Awaited<ReturnType<PdfJsLib["getDocument"]>["promise"]>;
 
-const MARKER_OPACITY_HEX = "55"; // ~33% — translucent overlay
+const MARKER_OPACITY_HEX = "55";
 const MARKER_OPACITY_PDF = 0.35;
 
 function hexToPdfRgb(hex: string) {
@@ -63,10 +66,9 @@ export default function AnnotateClient() {
   const [tool, setTool] = useState<Tool>("marker");
   const [color, setColor] = useState<string>(COLORS[0].hex);
 
-  // Per-tool width memory
   const [markerWidth, setMarkerWidth] = useState(16);
-  const [penWidth, setPenWidth] = useState(3);
-  const [circleWidth, setCircleWidth] = useState(3);
+  const [penWidth, setPenWidth] = useState(4);
+  const [circleWidth, setCircleWidth] = useState(4);
 
   const currentWidth = tool === "marker" ? markerWidth : tool === "circle" ? circleWidth : penWidth;
   const setCurrentWidth = (w: number) => {
@@ -81,15 +83,38 @@ export default function AnnotateClient() {
   const [drafting, setDrafting] = useState<Annotation | null>(null);
   const draftStartRef = useRef<Point | null>(null);
 
+  // Pinch zoom / pan
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState<Point>({ x: 0, y: 0 });
+  const zoomRef = useRef(1);
+  zoomRef.current = zoom;
+  const panRef = useRef<Point>({ x: 0, y: 0 });
+  panRef.current = pan;
+
+  const activePointersRef = useRef<Map<number, Point>>(new Map());
+  const pinchStartRef = useRef<{
+    dist: number;
+    midClient: Point;
+    midLocal: Point;
+    startZoom: number;
+    startPan: Point;
+  } | null>(null);
+
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const transformRef = useRef<HTMLDivElement>(null);
   const pdfCanvasRef = useRef<HTMLCanvasElement>(null);
   const drawCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const scaleRef = useRef<number>(1);
   const pageHeightRef = useRef<number>(0);
+
+  const resetZoom = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
 
   const onPick = async (files: File[]) => {
     const f = files[0];
@@ -98,6 +123,7 @@ export default function AnnotateClient() {
     setAnnotations([]);
     setRedoStack([]);
     setPageIndex(0);
+    resetZoom();
     try {
       const buf = await f.arrayBuffer();
       setOriginalBytes(buf);
@@ -153,6 +179,9 @@ export default function AnnotateClient() {
   }, [pdfDoc, pageIndex]);
 
   useEffect(() => { renderPage(); }, [renderPage]);
+
+  // Reset zoom when changing pages
+  useEffect(() => { resetZoom(); }, [pageIndex]);
 
   useEffect(() => {
     const onResize = () => renderPage();
@@ -216,20 +245,60 @@ export default function AnnotateClient() {
 
   useEffect(() => { redrawOverlay(); }, [redrawOverlay]);
 
+  // Convert pointer screen coordinates to PDF coordinates, accounting for zoom/pan
   const eventToPdfCoords = (e: React.PointerEvent<HTMLCanvasElement>): Point => {
     const canvas = e.currentTarget;
     const rect = canvas.getBoundingClientRect();
-    const cssX = e.clientX - rect.left;
-    const cssY = e.clientY - rect.top;
+    // rect already reflects CSS transform (scale + translate),
+    // so divide by zoom to get position in natural CSS pixel space
+    const cssX = (e.clientX - rect.left) / zoomRef.current;
+    const cssY = (e.clientY - rect.top) / zoomRef.current;
     const scale = scaleRef.current;
     const pageHeight = pageHeightRef.current;
     return { x: cssX / scale, y: pageHeight - cssY / scale };
   };
 
+  const startPinch = () => {
+    const pts = [...activePointersRef.current.values()];
+    if (pts.length < 2) return;
+    const container = transformRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const midClientX = (pts[0].x + pts[1].x) / 2;
+    const midClientY = (pts[0].y + pts[1].y) / 2;
+    const startZoom = zoomRef.current;
+    const startPan = { ...panRef.current };
+    // Convert midpoint to wrapper-local coordinates BEFORE the current transform
+    const midLocalX = (midClientX - rect.left - startPan.x) / startZoom;
+    const midLocalY = (midClientY - rect.top - startPan.y) / startZoom;
+    pinchStartRef.current = {
+      dist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y),
+      midClient: { x: midClientX, y: midClientY },
+      midLocal: { x: midLocalX, y: midLocalY },
+      startZoom,
+      startPan,
+    };
+  };
+
   const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!pdfDoc) return;
-    e.preventDefault();
+    activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     (e.target as HTMLCanvasElement).setPointerCapture(e.pointerId);
+
+    if (activePointersRef.current.size >= 2) {
+      // Second finger arrived — cancel in-progress drawing and start pinch
+      if (drafting) {
+        setDrafting(null);
+        draftStartRef.current = null;
+      }
+      startPinch();
+      e.preventDefault();
+      return;
+    }
+
+    // Single pointer — drawing
+    if (pinchStartRef.current) return; // safety
+    e.preventDefault();
     const p = eventToPdfCoords(e);
     draftStartRef.current = p;
     const id = crypto.randomUUID();
@@ -243,6 +312,32 @@ export default function AnnotateClient() {
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (activePointersRef.current.has(e.pointerId)) {
+      activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+
+    // Pinch zoom in progress
+    if (pinchStartRef.current && activePointersRef.current.size >= 2) {
+      e.preventDefault();
+      const pts = [...activePointersRef.current.values()];
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      const midX = (pts[0].x + pts[1].x) / 2;
+      const midY = (pts[0].y + pts[1].y) / 2;
+      const { dist: startDist, midLocal, startZoom } = pinchStartRef.current;
+      const ratio = dist / startDist;
+      const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, startZoom * ratio));
+
+      // Anchor zoom around finger midpoint
+      const container = transformRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const newPanX = midX - rect.left - newZoom * midLocal.x;
+      const newPanY = midY - rect.top - newZoom * midLocal.y;
+      setZoom(newZoom);
+      setPan({ x: newPanX, y: newPanY });
+      return;
+    }
+
     if (!drafting || !draftStartRef.current) return;
     e.preventDefault();
     const start = draftStartRef.current;
@@ -261,6 +356,13 @@ export default function AnnotateClient() {
   };
 
   const onPointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    activePointersRef.current.delete(e.pointerId);
+
+    // Still pinching with remaining finger? Reset pinch state when count drops below 2
+    if (activePointersRef.current.size < 2) {
+      pinchStartRef.current = null;
+    }
+
     if (!drafting) return;
     e.preventDefault();
     let keep = true;
@@ -373,6 +475,7 @@ export default function AnnotateClient() {
     setAnnotations([]);
     setRedoStack([]);
     setDrafting(null);
+    resetZoom();
   };
 
   if (!file || !pdfDoc) {
@@ -386,7 +489,7 @@ export default function AnnotateClient() {
         {error && <p className="mt-4 text-red-600 text-sm text-center">{error}</p>}
 
         <ToolInfo
-          what="PDF-i redaktə etmədən üstündə işarələr əlavə et: marker, dairə, sərbəst xətt. 14 hazır rəng + xüsusi rəng seçimi, hər səhifə üçün ayrı qeydlər."
+          what="PDF-i redaktə etmədən üstündə işarələr əlavə et: marker, dairə, sərbəst xətt. 14 hazır rəng + xüsusi rəng seçimi, hər səhifə üçün ayrı qeydlər. Mobildə 2 barmaqla zoom edirsən."
           whenToUse={[
             "Müqavilədə vacib hissələri vurğulamaq",
             "Tələbə referatında diqqət çəkilən yerləri işarələmək",
@@ -395,7 +498,7 @@ export default function AnnotateClient() {
           ]}
           howSteps={[
             "PDF faylı seç",
-            "Yuxarıdan alət seç (Marker, Dairə, və ya Qələm), rəng və qalınlıq seç",
+            "Alət, rəng və qalınlıq seç",
             "PDF üstündə sürüşdür, sonra \"Tətbiq et və yüklə\"",
           ]}
         />
@@ -428,7 +531,6 @@ export default function AnnotateClient() {
         </div>
 
         <ColorPicker value={color} onChange={setColor} />
-
         <WidthPicker value={currentWidth} onChange={setCurrentWidth} options={widthOptions} />
 
         <div className="flex gap-1 ml-auto">
@@ -438,8 +540,8 @@ export default function AnnotateClient() {
         </div>
       </div>
 
-      {/* Page navigator */}
-      <div className="flex items-center justify-center gap-3 mb-3 sm:mb-4">
+      {/* Page navigator + zoom info */}
+      <div className="flex items-center justify-center gap-3 mb-3 sm:mb-4 flex-wrap">
         <button
           onClick={() => setPageIndex((i) => Math.max(0, i - 1))}
           disabled={pageIndex === 0}
@@ -457,34 +559,53 @@ export default function AnnotateClient() {
         >
           Növbəti →
         </button>
+        {zoom > 1.01 && (
+          <button
+            onClick={resetZoom}
+            className="px-3 py-1.5 rounded-lg bg-blue-50 border border-accent text-accent hover:bg-blue-100 text-sm font-medium"
+          >
+            🔍 {(zoom).toFixed(1)}x — sıfırla
+          </button>
+        )}
       </div>
 
       {/* Canvas area */}
       <div
         ref={containerRef}
         className="relative mx-auto bg-gray-50 rounded-xl overflow-hidden border border-border"
-        style={{ touchAction: "none" }}
       >
-        <div className="relative flex items-center justify-center p-2">
-          <canvas
-            ref={pdfCanvasRef}
-            className="block max-w-full h-auto rounded shadow-sm"
-          />
-          <canvas
-            ref={drawCanvasRef}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
-            className="absolute"
-            style={{ touchAction: "none", cursor: "crosshair" }}
-          />
+        <div className="relative flex items-center justify-center p-2 overflow-hidden">
+          <div
+            ref={transformRef}
+            className="relative"
+            style={{
+              transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+              transformOrigin: "0 0",
+            }}
+          >
+            <canvas
+              ref={pdfCanvasRef}
+              className="block max-w-full h-auto rounded shadow-sm"
+            />
+            <canvas
+              ref={drawCanvasRef}
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+              onPointerCancel={onPointerUp}
+              className="absolute left-0 top-0"
+              style={{ touchAction: "none", cursor: "crosshair" }}
+            />
+          </div>
         </div>
       </div>
 
+      <p className="sm:hidden text-center text-xs text-muted mt-2">
+        💡 2 barmaqla pinch et — yaxınlaşdır və ya uzaqlaşdır
+      </p>
+
       {error && <p className="mt-4 text-red-600 text-sm text-center">{error}</p>}
 
-      {/* Apply — desktop */}
       <div className="hidden sm:block mt-6 text-center">
         <button
           onClick={applyAndDownload}
@@ -501,11 +622,10 @@ export default function AnnotateClient() {
           <ToolButton active={tool === "marker"} onClick={() => setTool("marker")} icon="🖍" label="Marker" compact />
           <ToolButton active={tool === "circle"} onClick={() => setTool("circle")} icon="⭕" label="Dairə" compact />
           <ToolButton active={tool === "pen"} onClick={() => setTool("pen")} icon="✏️" label="Qələm" compact />
-          <div className="w-px h-8 bg-border mx-0.5" />
+          <div className="w-px h-8 bg-border mx-0.5 shrink-0" />
           <ColorPicker value={color} onChange={setColor} compact />
-          <div className="w-px h-8 bg-border mx-0.5" />
           <WidthPicker value={currentWidth} onChange={setCurrentWidth} options={widthOptions} compact />
-          <div className="w-px h-8 bg-border mx-0.5" />
+          <div className="w-px h-8 bg-border mx-0.5 shrink-0" />
           <IconButton onClick={undo} disabled={annotations.length === 0}>↶</IconButton>
           <IconButton onClick={redo} disabled={redoStack.length === 0}>↷</IconButton>
         </div>
@@ -551,6 +671,48 @@ function ToolButton({
   );
 }
 
+type PopupAnchor = { left: number; bottom: number; top: number };
+
+function usePopup() {
+  const [open, setOpen] = useState(false);
+  const [anchor, setAnchor] = useState<PopupAnchor | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  const openAt = () => {
+    const btn = buttonRef.current;
+    if (!btn) return;
+    const r = btn.getBoundingClientRect();
+    setAnchor({ left: r.left, bottom: window.innerHeight - r.top, top: r.bottom });
+    setOpen(true);
+  };
+
+  const close = () => setOpen(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: Event) => {
+      const t = e.target as Node;
+      if (buttonRef.current?.contains(t)) return;
+      if (popupRef.current?.contains(t)) return;
+      setOpen(false);
+    };
+    const onScroll = () => setOpen(false);
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("touchstart", onDown);
+    window.addEventListener("resize", onScroll);
+    window.addEventListener("scroll", onScroll, true);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("touchstart", onDown);
+      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("scroll", onScroll, true);
+    };
+  }, [open]);
+
+  return { open, anchor, buttonRef, popupRef, openAt, close };
+}
+
 function ColorPicker({
   value,
   onChange,
@@ -560,26 +722,13 @@ function ColorPicker({
   onChange: (color: string) => void;
   compact?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent | TouchEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("touchstart", onDown);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("touchstart", onDown);
-    };
-  }, [open]);
+  const { open, anchor, buttonRef, popupRef, openAt, close } = usePopup();
 
   return (
-    <div className="relative shrink-0" ref={rootRef}>
+    <div className="shrink-0">
       <button
-        onClick={() => setOpen((v) => !v)}
+        ref={buttonRef}
+        onClick={() => (open ? close() : openAt())}
         className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition border border-border"
         aria-label="Rəng seç"
       >
@@ -591,17 +740,22 @@ function ColorPicker({
         <span className="text-xs text-muted">▾</span>
       </button>
 
-      {open && (
+      {open && anchor && typeof window !== "undefined" && createPortal(
         <div
-          className={`absolute z-50 p-3 bg-white border border-border rounded-xl shadow-xl w-64
-            ${compact ? "bottom-full mb-2 left-0" : "top-full mt-2 left-0"}`}
+          ref={popupRef}
+          style={
+            compact
+              ? { position: "fixed", left: Math.max(8, Math.min(window.innerWidth - 264, anchor.left)), bottom: anchor.bottom + 8, zIndex: 100 }
+              : { position: "fixed", left: Math.max(8, Math.min(window.innerWidth - 264, anchor.left)), top: anchor.top + 8, zIndex: 100 }
+          }
+          className="p-3 bg-white border border-border rounded-xl shadow-2xl w-64"
         >
           <p className="text-xs text-muted mb-2">Hazır rənglər</p>
           <div className="grid grid-cols-7 gap-1.5 mb-3">
             {COLORS.map((c) => (
               <button
                 key={c.hex}
-                onClick={() => { onChange(c.hex); setOpen(false); }}
+                onClick={() => { onChange(c.hex); close(); }}
                 title={c.name}
                 className={`w-7 h-7 rounded-full transition
                   ${value === c.hex ? "ring-2 ring-accent ring-offset-2 scale-110" : "ring-1 ring-gray-300 hover:scale-110"}`}
@@ -620,7 +774,8 @@ function ColorPicker({
               aria-label="Xüsusi rəng seç"
             />
           </label>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -637,28 +792,15 @@ function WidthPicker({
   options: number[];
   compact?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent | TouchEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("touchstart", onDown);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("touchstart", onDown);
-    };
-  }, [open]);
+  const { open, anchor, buttonRef, popupRef, openAt, close } = usePopup();
 
   const previewSize = (w: number) => Math.min(Math.max(w + 2, 4), 22);
 
   return (
-    <div className="relative shrink-0" ref={rootRef}>
+    <div className="shrink-0">
       <button
-        onClick={() => setOpen((v) => !v)}
+        ref={buttonRef}
+        onClick={() => (open ? close() : openAt())}
         className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition border border-border"
         aria-label="Qalınlıq seç"
       >
@@ -670,17 +812,22 @@ function WidthPicker({
         <span className="text-xs text-muted">▾</span>
       </button>
 
-      {open && (
+      {open && anchor && typeof window !== "undefined" && createPortal(
         <div
-          className={`absolute z-50 p-3 bg-white border border-border rounded-xl shadow-xl
-            ${compact ? "bottom-full mb-2 left-0" : "top-full mt-2 left-0"}`}
+          ref={popupRef}
+          style={
+            compact
+              ? { position: "fixed", left: Math.max(8, anchor.left), bottom: anchor.bottom + 8, zIndex: 100 }
+              : { position: "fixed", left: Math.max(8, anchor.left), top: anchor.top + 8, zIndex: 100 }
+          }
+          className="p-3 bg-white border border-border rounded-xl shadow-2xl"
         >
           <p className="text-xs text-muted mb-2">Qalınlıq</p>
           <div className="flex items-center gap-1.5">
             {options.map((w) => (
               <button
                 key={w}
-                onClick={() => { onChange(w); setOpen(false); }}
+                onClick={() => { onChange(w); close(); }}
                 title={`${w} pt`}
                 className={`w-11 h-11 rounded-lg flex items-center justify-center transition
                   ${value === w ? "bg-blue-100 ring-2 ring-accent" : "hover:bg-gray-100"}`}
@@ -692,7 +839,8 @@ function WidthPicker({
               </button>
             ))}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
