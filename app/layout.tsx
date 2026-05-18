@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import Image from "next/image";
 import { Analytics } from "@vercel/analytics/next";
 import MobileNav from "./components/MobileNav";
+import InstallPrompt from "./components/InstallPrompt";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,6 +21,22 @@ export const metadata: Metadata = {
   title: "AsanPDF.com — PDF alətləri pulsuz və onlayn",
   description:
     "PDF birləşdir, ayır, səhifə sil, şəkildən PDF yarat. Hər şey brauzerdə işləyir — faylların heç yerə yüklənmir.",
+  applicationName: "AsanPDF",
+  appleWebApp: {
+    capable: true,
+    title: "AsanPDF",
+    statusBarStyle: "default",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#2563eb",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({
@@ -75,6 +92,7 @@ export default function RootLayout({
             </Link>
           </div>
         </footer>
+        <InstallPrompt />
         <Analytics />
       </body>
     </html>
