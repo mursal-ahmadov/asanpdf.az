@@ -24,11 +24,14 @@ const COLORS: ColorOption[] = [
 
 type Point = { x: number; y: number };
 
-type MarkerAnn  = { id: string; type: "marker"; pageIndex: number; color: string; x: number; y: number; w: number; h: number };
+type MarkerAnn  = { id: string; type: "marker"; pageIndex: number; color: string; points: Point[]; strokeWidth: number };
 type CircleAnn  = { id: string; type: "circle"; pageIndex: number; color: string; cx: number; cy: number; rx: number; ry: number; strokeWidth: number };
 type PenAnn     = { id: string; type: "pen";    pageIndex: number; color: string; points: Point[]; strokeWidth: number };
 
 type Annotation = MarkerAnn | CircleAnn | PenAnn;
+
+const MARKER_WIDTH = 16; // PDF points — thick highlighter stroke
+const MARKER_OPACITY_HEX = "55"; // ~33% — translucent overlay
 
 type PdfJsLib = typeof import("pdfjs-dist");
 type PdfJsDoc = Awaited<ReturnType<PdfJsLib["getDocument"]>["promise"]>;
@@ -157,8 +160,19 @@ export default function AnnotateClient() {
 
     for (const a of list) {
       if (a.type === "marker") {
-        ctx.fillStyle = a.color + "66"; // ~40% opacity
-        ctx.fillRect(a.x * s, (pageHeight - a.y - a.h) * s, a.w * s, a.h * s);
+        if (a.points.length < 2) continue;
+        ctx.strokeStyle = a.color + MARKER_OPACITY_HEX;
+        ctx.lineWidth = a.strokeWidth * s;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        a.points.forEach((p, i) => {
+          const cx = p.x * s;
+          const cy = (pageHeight - p.y) * s;
+          if (i === 0) ctx.moveTo(cx, cy);
+          else ctx.lineTo(cx, cy);
+        });
+        ctx.stroke();
       } else if (a.type === "circle") {
         ctx.strokeStyle = a.color;
         ctx.lineWidth = a.strokeWidth * s;
@@ -206,7 +220,7 @@ export default function AnnotateClient() {
     draftStartRef.current = p;
     const id = crypto.randomUUID();
     if (tool === "marker") {
-      setDrafting({ id, type: "marker", pageIndex, color, x: p.x, y: p.y, w: 0, h: 0 });
+      setDrafting({ id, type: "marker", pageIndex, color, points: [p], strokeWidth: MARKER_WIDTH });
     } else if (tool === "circle") {
       setDrafting({ id, type: "circle", pageIndex, color, cx: p.x, cy: p.y, rx: 0, ry: 0, strokeWidth });
     } else {
@@ -220,11 +234,7 @@ export default function AnnotateClient() {
     const start = draftStartRef.current;
     const cur = eventToPdfCoords(e);
     if (drafting.type === "marker") {
-      const x = Math.min(start.x, cur.x);
-      const y = Math.min(start.y, cur.y);
-      const w = Math.abs(cur.x - start.x);
-      const h = Math.abs(cur.y - start.y);
-      setDrafting({ ...drafting, x, y, w, h });
+      setDrafting({ ...drafting, points: [...drafting.points, cur] });
     } else if (drafting.type === "circle") {
       const cx = (start.x + cur.x) / 2;
       const cy = (start.y + cur.y) / 2;
@@ -242,7 +252,7 @@ export default function AnnotateClient() {
     // Filter out tiny accidental marks
     let keep = true;
     if (drafting.type === "marker") {
-      if (drafting.w < 2 || drafting.h < 2) keep = false;
+      if (drafting.points.length < 2) keep = false;
     } else if (drafting.type === "circle") {
       if (drafting.rx < 2 && drafting.ry < 2) keep = false;
     } else if (drafting.type === "pen") {
@@ -293,15 +303,18 @@ export default function AnnotateClient() {
         if (!page) continue;
         const color = hexToPdfRgb(a.color);
         if (a.type === "marker") {
-          page.drawRectangle({
-            x: a.x,
-            y: a.y,
-            width: a.w,
-            height: a.h,
-            color,
-            opacity: 0.4,
-            borderWidth: 0,
-          });
+          for (let i = 1; i < a.points.length; i++) {
+            const start = a.points[i - 1];
+            const end = a.points[i];
+            page.drawLine({
+              start: { x: start.x, y: start.y },
+              end: { x: end.x, y: end.y },
+              thickness: a.strokeWidth,
+              color,
+              opacity: 0.35,
+              lineCap: 1,
+            });
+          }
         } else if (a.type === "circle") {
           page.drawEllipse({
             x: a.cx,
@@ -409,7 +422,7 @@ export default function AnnotateClient() {
           ))}
         </div>
 
-        {tool !== "marker" && (
+        {(tool === "circle" || tool === "pen") && (
           <div className="flex gap-1 items-center border-r border-border pr-3">
             <span className="text-xs text-muted mr-1">Qalınlıq:</span>
             {[2, 3, 5, 8].map((w) => (
