@@ -101,9 +101,22 @@ AsanPDF.az/
 | `/sekil-to-pdf` | Şəkil → PDF (EXIF düzəlişi ilə) | pdf-lib + exifr + canvas | ✅ |
 | `/pdf-to-sekil` | PDF → JPG | pdfjs-dist (canvas) | ✅ |
 | `/sixisdir` | PDF Sıxışdır (Compress) | pdfjs-dist + pdf-lib (rasterize → JPEG → embed) | ✅ |
-| `/qeyd-et` | PDF üzərində qeyd et (marker, dairə, qələm) | pdfjs-dist (canvas overlay) + pdf-lib (drawRectangle/Ellipse/Line) | ✅ |
+| `/qeyd-et` | PDF üzərində qeyd et (marker, dairə, qələm) | pdfjs-dist (canvas overlay) + pdf-lib (drawEllipse / drawLine) | ✅ |
 
-**Annotation qeydi:** `/qeyd-et` ən mürəkkəb UI-dir — pdfjs-dist ilə PDF səhifəsi canvas-a render olunur, üst-üstə şəffaf overlay canvas qoyulur. Pointer event-ləri (touch + mouse + stylus) ilə istifadəçi sahə seçir. Annotation-lar PDF koordinatlarında saxlanır (səhifə yüklənərkən ölçü dəyişsə də stabil olur). Y oxu çevrilir (canvas top-down → PDF bottom-up). Tətbiq vaxtı pdf-lib `drawRectangle` (marker, opacity 0.4), `drawEllipse` (dairə, borderOnly), `drawLine` (qələm seqmentləri) çağırılır. Undo/redo stack saxlanır. Mobil üçün sticky bottom toolbar.
+**Annotation qeydi (`/qeyd-et`)** — ən mürəkkəb UI-dir, son təkmilləşmələrlə:
+
+- PDF səhifəsi pdfjs-dist ilə canvas-a render olunur, üst-üstə şəffaf overlay canvas qoyulur
+- Annotation-lar PDF koordinatlarında saxlanır (Y oxu canvas top-down ↔ PDF bottom-up çevrilir)
+- 3 alət: **marker** (sərbəst, geniş, translucent), **dairə** (drag bounding-box → ellipse), **qələm** (sərbəst, dəqiq)
+- **Marker** indi qələm kimi sərbəst çəkilir — `drawLine` ilə `opacity: 0.35` istifadə olunur (köhnə drawRectangle yanaşması deyil). `MARKER_OPACITY_HEX = "55"` canvas-da, `MARKER_OPACITY_PDF = 0.35` PDF-də. Sabit MARKER_WIDTHS = [10, 16, 24, 32]
+- **Dairə və qələm** üçün STROKE_WIDTHS = [2, 4, 7, 11, 16]; pdf-lib `drawEllipse({opacity: 0, borderOnly})` və ardıcıl `drawLine` seqmentləri
+- Hər alət üçün strokeWidth ayrı state-də saxlanır (markerWidth/penWidth/circleWidth) — alət dəyişəndə seçimi unutmur
+- **Pinch-to-zoom + pan** (1x – 4x): 2 barmaqla zoom, midpoint-də anchor; 2 barmaq sürüşdürəndə pan; çəkim zamanı 2-ci barmaq düşsə cızıq atılır. CSS `transform: translate(panX, panY) scale(zoom)` wrapper div-də. `eventToPdfCoords` zoom-a görə düzəlir
+- **Color picker + Width picker** — düymə + dropdown panel. Hər ikisi `react-dom` `createPortal` ilə `document.body` səviyyəsində render olunur ki, mobil toolbar-ın `overflow-x-auto`-su onları kəsməsin. `getBoundingClientRect()` ilə dəqiq mövqe; outside-click / scroll / resize-da bağlanır; viewport-dan çıxmasın deyə left clamp olunur
+- 14 hazır rəng (`#FFEB3B` əsl marker sarısı və s.) + native `<input type="color">` xüsusi rəng üçün
+- Qalınlıq nümunə nöqtələri həmişə qara (`bg-gray-900`), rəngdən asılı deyil — vahid neytral göstərici
+- Undo / redo stack, "səhifəni təmizlə" düyməsi, səhifələr arası naviqasiya, "zoom sıfırla" düyməsi (zoom > 1 olanda)
+- Mobil üçün sticky bottom toolbar; desktop üçün sticky top toolbar
 
 **pdfjs worker faylı:** `public/pdf.worker.min.mjs` — `node_modules/pdfjs-dist/build/`-dən kopyalandı. `?url` import sintaksisi production-da işləmir (Turbopack/Webpack uyğunsuzluğu). `pdfjs-dist` paketi yenilənəndə bu faylı **manual olaraq yenidən kopyala**:
 ```bash
@@ -229,16 +242,40 @@ Bütün cavablar bu başlıqlarla gəlir:
 
 **Əgər logo dəyişdirilərsə:** yeni faylın ölçülərini `node -e "..."` ilə oxu və `width`/`height` props yenilə.
 
-## 13. Bilinən məhdudiyyətlər və TODO
+## 13. PWA — telefona quraşdırma
 
-- ❌ Favicon hələ ki yaxşı görünmür kiçik ölçüdə (icon.png horizontal logodur, kvadrat olmalıdır)
-- ❌ Google Sitemap status hələ uğursuzdur (yenidir, gözlə)
-- ⏳ Open Graph şəkil yoxdur (sosial mediada paylaşılanda gözəl görünmür)
-- ⏳ "Email göndər" formu yoxdur (sahib hələ istəmir)
-- ⏳ Sosial media linki yoxdur (yoxdur)
-- ⏳ Blog/məqalə bölməsi yoxdur (gələcəkdə SEO üçün lazım olacaq)
+Sayt **Progressive Web App** kimi telefon ana ekranına quraşdırıla bilir:
 
-## 14. Tez-tez tələb olunan iş tipləri
+- `app/manifest.ts` — Next.js `MetadataRoute.Manifest` API ilə `/manifest.webmanifest` çıxış edir (`display: standalone`, `theme_color: #2563eb`, icons 192/512, `lang: az`)
+- `app/icon.png` — favicon və PWA ikonu (Next.js avtomatik)
+- `app/apple-icon.png` — iOS bookmark/home screen ikonu (eyni şəkilin kopyası)
+- `app/layout.tsx` — `applicationName`, `appleWebApp` metadata + `viewport` export (themeColor)
+- **`app/components/InstallPrompt.tsx`** — sağ aşağıda görünən banner:
+  - **Android/Chrome**: `beforeinstallprompt` hadisəsini tutur → "Qur" düyməsi native install dialoq açır
+  - **iOS Safari**: 3 saniyə gecikmə ilə "Paylaş → Ana ekrana əlavə et" təlimatı göstərir
+  - localStorage ilə **14 gün cooldown** ("Sonra" basılsa)
+  - `display-mode: standalone` yoxlayır — artıq qurulubsa görünmür
+  - `window.navigator.standalone` iOS Safari-yə xüsusi yoxlama
+
+## 14. Header və grid layout
+
+- **Header:** 80px hündürlük (`h-20`), sticky, blur, color-coded pill düymələr
+- 10 düymə (9 alət + Haqqımızda) — **`xl:` breakpoint (1280px)**-dən başlayır; daha kiçik ekranlarda hamburger menyu
+- Hər düymənin **öz rəng identifikasiyası**: blue / violet / rose / amber / cyan / emerald / pink / indigo / yellow / gray (Haqqımızda) — ana səhifə kartları ilə tam uyğun
+- Naviqasiya class-ları manual (Tailwind purge-safe), gap-1.5, text-[13px], whitespace-nowrap
+- **Cards grid:** `grid-cols-2 sm:grid-cols-3 lg:grid-cols-5` — 9 kart desktop-da 5+4 (2 sıra) düzülür
+- Hər kart üçün hover animasiyası `globals.css`-də keyframe-lərlə (`anim-merge`, `anim-cut`, `anim-shake`, `anim-extract`, `anim-rotate`, `anim-flip`, `anim-flash`, `anim-compress`, `anim-mark`)
+
+## 15. Bilinən məhdudiyyətlər və TODO
+
+- ⏳ Google Search Console sitemap status (yeni domen, yenidən yoxlanılır)
+- ⏳ Open Graph şəkil yoxdur (sosial mediada paylaşılanda preview gözəl olsun deyə)
+- ⏳ "Email göndər" / geri əlaqə formu yoxdur (sahib hələ istəmir)
+- ⏳ Sosial media linki yoxdur
+- ⏳ Blog/məqalə bölməsi yoxdur (gələcəkdə SEO üçün)
+- ⏳ PDF → Word (Gemini Flash 2.5 API ilə) müzakirə olundu, hələ icra olunmayıb — yeni çatda davam ediləcək
+
+## 16. Tez-tez tələb olunan iş tipləri
 
 ### Yeni alət əlavə etmək
 1. `app/<alet-adi>/page.tsx` yarat
@@ -264,7 +301,7 @@ Bütün cavablar bu başlıqlarla gəlir:
 - Google/Vercel UI-da bir şey → konkret düymə adları yaz
 - Şəkil yükləmə → tam fayl yolu və ad ver
 
-## 15. Üslub bələdçisi (yazı və davranış)
+## 17. Üslub bələdçisi (yazı və davranış)
 
 **İstifadəçi ilə:**
 - Azərbaycanca, qısa cümlələrlə
@@ -286,7 +323,7 @@ Bütün cavablar bu başlıqlarla gəlir:
 - İmperativ formada ("Add", "Fix", "Replace")
 - Birinci sətr qısa (50 simvol), boş sətr, sonra detallar
 
-## 16. Gələcək plan (sahibin vizionu)
+## 18. Gələcək plan (sahibin vizionu)
 
 1. **İndi:** Cloudflare gözlə → domen qoş → real istifadəçi feedback yığ
 2. **1-3 ay:** Reddit/Telegram qruplarında paylaş, ilk 100 istifadəçini tap
