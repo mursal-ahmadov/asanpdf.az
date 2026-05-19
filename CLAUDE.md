@@ -290,12 +290,13 @@ Sayt **Progressive Web App** kimi telefon ana ekranına quraşdırıla bilir:
 
 ## 15. Bilinən məhdudiyyətlər və TODO
 
-- ⏳ Google Search Console sitemap status (yeni domen, yenidən yoxlanılır)
-- ⏳ Open Graph şəkil yoxdur (sosial mediada paylaşılanda preview gözəl olsun deyə)
+- ⏳ Google Search Console — 10 əsas URL "Request Indexing" göndərildi, indeksləmə nəticəsi gözlənir (24-48 saat)
 - ⏳ "Email göndər" / geri əlaqə formu yoxdur (sahib hələ istəmir)
 - ⏳ Sosial media linki yoxdur
-- ⏳ Blog/məqalə bölməsi yoxdur (gələcəkdə SEO üçün)
+- ⏳ Blog/məqalə bölməsi yoxdur (gələcəkdə SEO üçün) — yeni çatda başlanacaq
 - ⏳ PDF → Word (Gemini Flash 2.5 API ilə) müzakirə olundu, hələ icra olunmayıb — yeni çatda davam ediləcək
+- ⏳ Multi-dil dəstəyi yoxdur (gələcəkdə `/en/`, `/ru/`, `/tr/` ilə qlobal trafik üçün)
+- ⏳ Real istifadəçi feedback toplama mexanizmi yoxdur — Vercel Analytics izləyir, amma "təklif/şikayət" formu yoxdur
 
 ## 16. Tez-tez tələb olunan iş tipləri
 
