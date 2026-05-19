@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ExtractClient from "./ExtractClient";
+import HowToJsonLd from "../components/HowToJsonLd";
 
 export const metadata: Metadata = {
   title: "PDF-dən Səhifə Çıxar — Seçilmiş səhifələri ayrı yüklə | AsanPDF.com",
@@ -15,5 +16,20 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <ExtractClient />;
+  return (
+    <>
+      <HowToJsonLd
+        name="PDF-dən səhifə necə çıxarmaq olar?"
+        description="PDF-dən istədiyin səhifələri seçib ayrı sənəd kimi yükləmək üçün təlimat."
+        url="/cixar"
+        steps={[
+          { name: "PDF faylı seç", text: "Səhifələrini çıxarmaq istədiyin PDF faylı sürüşdür və ya seç." },
+          { name: "Səhifələri seç", text: "Çıxarmaq istədiyin səhifələrin nömrələrinə bas." },
+          { name: "Format seç", text: "\"Bir PDF kimi\" və ya \"Hər səhifə ayrı PDF\" rejimini seç." },
+          { name: "Çıxar və yüklə", text: "\"Çıxar və yüklə\" düyməsinə bas." },
+        ]}
+      />
+      <ExtractClient />
+    </>
+  );
 }

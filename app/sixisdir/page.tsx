@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import CompressClient from "./CompressClient";
+import HowToJsonLd from "../components/HowToJsonLd";
 
 export const metadata: Metadata = {
   title: "PDF Sıxışdır — Fayl ölçüsünü azalt onlayn | AsanPDF.com",
@@ -22,5 +23,20 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <CompressClient />;
+  return (
+    <>
+      <HowToJsonLd
+        name="PDF-i necə sıxışdırmaq olar?"
+        description="PDF faylının ölçüsünü 50-90% azaltmaq üçün addım-addım təlimat."
+        url="/sixisdir"
+        totalTime="PT2M"
+        steps={[
+          { name: "PDF faylı seç", text: "Sıxışdırmaq istədiyin PDF faylı sürüşdür və ya seç." },
+          { name: "Keyfiyyət səviyyəsi seç", text: "Yüksək, Tövsiyə olunan və ya Maksimum sıxma rejimini seç." },
+          { name: "Sıxışdır və yüklə", text: "\"Sıxışdır və yüklə\" düyməsinə bas — ölçü qənaəti faiz ilə göstəriləcək." },
+        ]}
+      />
+      <CompressClient />
+    </>
+  );
 }

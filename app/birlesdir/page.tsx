@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import MergeClient from "./MergeClient";
+import HowToJsonLd from "../components/HowToJsonLd";
 
 export const metadata: Metadata = {
   title: "PDF Birləşdir — Bir neçə PDF-i birinə birləşdir | AsanPDF.com",
@@ -15,5 +16,19 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <MergeClient />;
+  return (
+    <>
+      <HowToJsonLd
+        name="PDF-ləri necə birləşdirmək olar?"
+        description="Bir neçə PDF faylını sıra ilə bir sənədə birləşdirmək üçün addım-addım təlimat."
+        url="/birlesdir"
+        steps={[
+          { name: "PDF faylları seç", text: "Birləşdirmək istədiyin PDF faylları sürüşdür və ya kompüterdən seç." },
+          { name: "Sıranı tənzimlə", text: "Yuxarı/aşağı düymələri ilə faylların ardıcıllığını dəyiş." },
+          { name: "Birləşdir və yüklə", text: "\"Birləşdir və yüklə\" düyməsinə bas — yeni PDF avtomatik enəcək." },
+        ]}
+      />
+      <MergeClient />
+    </>
+  );
 }

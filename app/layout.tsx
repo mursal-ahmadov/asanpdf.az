@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Analytics } from "@vercel/analytics/next";
 import MobileNav from "./components/MobileNav";
 import InstallPrompt from "./components/InstallPrompt";
+import SiteJsonLd from "./components/JsonLd";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -94,6 +95,7 @@ export default function RootLayout({
           </div>
         </footer>
         <InstallPrompt />
+        <SiteJsonLd />
         <Analytics />
       </body>
     </html>

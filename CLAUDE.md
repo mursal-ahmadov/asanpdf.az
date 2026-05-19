@@ -214,10 +214,32 @@ Bütün cavablar bu başlıqlarla gəlir:
 ## 10. SEO və Analytics
 
 - **Vercel Analytics** — `@vercel/analytics` quraşdırılıb, layout-da `<Analytics />` var. Şəxsi məlumat toplamır.
-- **Sitemap** — `app/sitemap.ts`, Vercel env (`VERCEL_PROJECT_PRODUCTION_URL`) əsasında URL qurur. `NEXT_PUBLIC_SITE_URL` ilə override edilə bilər (domen aktiv olanda).
+- **Sitemap** — `app/sitemap.ts`, `NEXT_PUBLIC_SITE_URL` (Vercel env-də `https://asanpdf.com`) əsasında URL qurur.
 - **Robots** — `app/robots.ts`, sitemap-i göstərir.
-- **Google Search Console:** sayt təsdiqlənib (HTML file metodu — `public/googlec4cf6d7c66c5a6c9.html`). Sitemap göndərilib amma **status hələ uğursuz** — sayt yenidir, Google yenidən cəhd edəcək.
-- **Meta tags:** hər səhifədə öz `metadata` exports (title, description). Multilingual hələ yox.
+- **Google Search Console:** həm `asanpdf.com` (HTML file metodu — `public/googlec4cf6d7c66c5a6c9.html`), həm köhnə `asanpdf-az.vercel.app` təsdiqlənib. Sitemap göndərilib — "Успешно".
+- **Meta tags:** hər səhifədə öz `metadata` exports (title, description, keywords, canonical, OpenGraph). Multilingual hələ yox.
+
+### Structured Data (JSON-LD)
+
+**Site səviyyəsi** (`app/components/JsonLd.tsx`, layout-a daxildir):
+- `WebSite` schema — sayt brand-i, dil, URL
+- `Organization` schema — naşir kimi
+- `SoftwareApplication` schema — alət növü, kateqoriya, **`price: "0"`** (Google "Pulsuz" badge göstərə bilər), featureList ilə 9 alət
+
+**Hər alət səhifəsi** (`app/components/HowToJsonLd.tsx`, hər `page.tsx`-də istifadə olunur):
+- `HowTo` schema — adım-adım təlimat
+- Hər step üçün `name` + `text` + position
+- `totalTime: "PT1M"` default (sıxışdır üçün PT2M)
+- Google bəzən axtarış nəticələrində birbaşa addımları göstərir ("Rich Snippet")
+
+### Open Graph şəkili
+
+`app/opengraph-image.tsx` — **dinamik** PNG-image, hər deploy-da yenidən render olunur:
+- Next.js `ImageResponse` + Edge runtime
+- 1200×630 piksel
+- Qradient fon (blue → indigo → violet), grid pattern, beyaz PDF document ikonu, brand mətn + tagline + üç feature badge
+- Facebook/Telegram/WhatsApp/LinkedIn-də avtomatik aşkar edilir
+- Hər səhifə üçün `openGraph` metadata bunu istifadə edir (avtomatik)
 
 ## 11. Domen vəziyyəti
 

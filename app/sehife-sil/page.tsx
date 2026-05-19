@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import DeleteClient from "./DeleteClient";
+import HowToJsonLd from "../components/HowToJsonLd";
 
 export const metadata: Metadata = {
   title: "PDF-dən Səhifə Sil — Lazımsız səhifələri çıxar | AsanPDF.com",
@@ -15,5 +16,19 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <DeleteClient />;
+  return (
+    <>
+      <HowToJsonLd
+        name="PDF-dən səhifə necə silmək olar?"
+        description="PDF sənədindən lazımsız səhifələri silmək üçün addım-addım təlimat."
+        url="/sehife-sil"
+        steps={[
+          { name: "PDF faylı seç", text: "Səhifələrini silmək istədiyin PDF faylı sürüşdür və ya seç." },
+          { name: "Silməni səhifələri işarələ", text: "Silmək istədiyin səhifələrin nömrələrinə bas (qırmızı işarələnir)." },
+          { name: "Sil və yüklə", text: "\"Sil və yüklə\" düyməsinə bas — yeni təmizlənmiş PDF avtomatik enəcək." },
+        ]}
+      />
+      <DeleteClient />
+    </>
+  );
 }
